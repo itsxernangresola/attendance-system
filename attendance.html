@@ -39,34 +39,23 @@ th {
     background: #f2f2f2;
 }
 
-/* PRINT MODE */
+/* PRINT SETTINGS */
 @media print {
 
-    #reader,
-    button,
-    h2,
-    #totalContainer {
-        display: none;
+    body * {
+        visibility: hidden;
     }
 
-    #printHeader {
-        display: block;
-        text-align: center;
-        margin-bottom: 20px;
+    #printSection, #printSection * {
+        visibility: visible;
     }
 
-    body {
-        padding: 0;
+    #printSection {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
     }
-
-    table {
-        font-size: 12px;
-    }
-}
-
-/* Hidden normally */
-#printHeader {
-    display: none;
 }
 </style>
 </head>
@@ -82,33 +71,37 @@ th {
     <button onclick="clearData()">Clear</button>
 </div>
 
-<h3 id="totalContainer">Total Present: <span id="total">0</span></h3>
+<h3>Total Present: <span id="total">0</span></h3>
 
-<!-- PRINT HEADER -->
-<div id="printHeader">
-    <h2>ATTENDANCE</h2>
-    <p>
-        EVENT: _____________________________
-        &nbsp;&nbsp;&nbsp;
-        DATE: ________________
-    </p>
-    <p>
-        GRADE AND SECTION: ___________________________
-    </p>
+<!-- PRINT SECTION (Always Visible, but only printed) -->
+<div id="printSection">
+
+    <div style="text-align:center; margin-bottom:20px;">
+        <h2>ATTENDANCE</h2>
+        <p>
+            EVENT: _____________________________
+            &nbsp;&nbsp;&nbsp;&nbsp;
+            DATE: __________________
+        </p>
+        <p>
+            GRADE AND SECTION: ___________________________
+        </p>
+    </div>
+
+    <table id="attendanceTable">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Full Name</th>
+                <th>Strand</th>
+                <th>Year</th>
+                <th>Time</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
 </div>
-
-<table id="attendanceTable">
-<thead>
-<tr>
-    <th>#</th>
-    <th>Full Name</th>
-    <th>Strand</th>
-    <th>Year</th>
-    <th>Time</th>
-</tr>
-</thead>
-<tbody></tbody>
-</table>
 
 <script>
 
