@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>QR Attendance</title>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        body {
+            font-family: Arial;
+            padding: 10px;
+            text-align: center;
+        }
+        h2 {
+            margin-bottom: 10px;
+        }
+        #reader {
+            width: 100%;
+            max-width: 350px;
+            margin: auto;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 15px;
+            font-size: 12px;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 6px;
+        }
+        th {
+            background: #f2f2f2;
+        }
+        button {
+            margin: 5px;
+            padding: 8px 12px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<h2>QR Attendance Scanner</h2>
+
+<div id="reader"></div>
+
+<div>
+    <button onclick="printPage()">Print</button>
+    <button onclick="exportCSV()">Export CSV</button>
+    <button onclick="clearData()">Clear</button>
+</div>
+
+<h3>Total Present: <span id="total">0</span></h3>
+
+<table id="attendanceTable">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Strand</th>
+            <th>Year</th>
+            <th>Time</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<script>
+let attendanceList = [];
+let scannedIDs = new Set();
+
+function onScanSuccess(decodedText) {
+
+    let parts = decodedText.split(";");
+
+    if (parts.length !== 8) return;
+
+    let lastName = parts[1];
+    let firstName = parts[2];
+    let idNumber = parts[4];
+    let strand = parts[6];
+    let year = parts[7];
+
+    if (scannedIDs.has(idNumber)) {
+        return; // silently ignore duplicates (no annoying alert)
+    }
+
+    let time = new Date().toLocaleTimeString();
+
+    let record = {
+        fullName: lastName + ", " + firstName,
+        strand: strand,
+        year: year,
+        idNumber: idNumber,
+        time: time
+    };
+
+    attendanceList.push(record);
+    scannedIDs.add(idNumber);
+
+    addRow(record);
+    document.getElementById("total").innerText = attendanceList.length;
+
+    navigator.vibrate(100); // vibration feedback
+}
+
+function addRow(record) {
+    let table = document.querySelector("#attendanceTable tbody");
+    let row = table.insertRow();
+
+    row.insertCell(0).innerText = attendanceList.length;
+    row.insertCell(1).innerText = record.fullName;
+    row.insertCell(2).innerText = record.strand;
+    row.insertCell(3).innerText = record.year;
+    row.insertCell(4).innerText = record.time;
+}
+
+function printPage() {
+    window.print();
+}
+
+function clearData() {
+    attendanceList = [];
+    scannedIDs.clear();
+    document.querySelector("#attendanceTable tbody").innerHTML = "";
+    document.getElementById("total").innerText = "0";
+}
+
+function exportCSV() {
+    let csv = "FullName,Strand,Year,Time\n";
+
+    attendanceList.forEach(r => {
+        csv += `${r.fullName},${r.strand},${r.year},${r.time}\n`;
+    });
+
+    let blob = new Blob([csv], { type: "text/csv" });
+    let url = URL.createObjectURL(blob);
+
+    let a = document.createElement("a");
+    a.href = url;
+    a.download = "attendance.csv";
+    a.click();
+}
+
+new Html5QrcodeScanner("reader", {
+    fps: 15,
+    qrbox: { width: 250, height: 250 },
+    rememberLastUsedCamera: true
+}).render(onScanSuccess);
+
+</script>
+
+</body>
+</html>
