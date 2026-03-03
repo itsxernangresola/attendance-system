@@ -65,9 +65,35 @@
         color: #555;
     }
 
-    /* --- PRINT SECTION (HIDDEN ON SCREEN) --- */
+    /* --- SCREEN TABLE STYLES (Visible on Screen) --- */
+    #screenTable {
+        width: 100%;
+        max-width: 800px;
+        margin: 20px auto;
+        border-collapse: collapse;
+        font-size: 14px;
+        background: white;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    #screenTable th, #screenTable td {
+        border: 1px solid #ddd;
+        padding: 10px;
+        text-align: left;
+    }
+
+    #screenTable th {
+        background-color: #f8f9fa;
+        color: #333;
+    }
+
+    #screenTable tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+
+    /* --- PRINT SECTION (Hidden on Screen, Visible on Print) --- */
     #printSection {
-        display: none; /* This hides it on the screen */
+        display: none; /* Hides the formal print layout on screen */
     }
 
     /* --- PRINT SETTINGS --- */
@@ -89,7 +115,7 @@
             width: 100%;
             margin: 0;
             padding: 0;
-            display: block; /* Force it to render */
+            display: block;
         }
 
         /* Style the printout to look like a document */
@@ -121,7 +147,7 @@
         }
 
         #printSection th {
-            background-color: #eee !important; /* Printers handle background colors differently */
+            background-color: #eee !important;
             font-weight: bold;
             text-transform: uppercase;
         }
@@ -149,6 +175,22 @@
         Total Present: <strong id="total">0</strong>
     </div>
 
+    <!-- SCREEN TABLE (Visible on Screen) -->
+    <table id="screenTable">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Full Name</th>
+                <th>Strand</th>
+                <th>Year</th>
+                <th>Time</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Rows will be added here -->
+        </tbody>
+    </table>
+
     <!-- PRINT INTERFACE (Hidden on screen, visible on print) -->
     <div id="printSection">
         
@@ -168,7 +210,6 @@
                     <th style="width: 15%;">Strand</th>
                     <th style="width: 10%;">Year</th>
                     <th style="width: 15%;">Time</th>
-                    <th style="width: 20%;">ID Number</th>
                 </tr>
             </thead>
             <tbody>
@@ -203,7 +244,7 @@
         let lastName = parts[1];
         let firstName = parts[2];
         let middleName = parts[3];
-        let idNumber = parts[4];
+        let idNumber = parts[4]; // Kept for duplicate check, but not displayed
         let strand = parts[6];
         let year = parts[7];
 
@@ -219,7 +260,7 @@
             fullName: fullName,
             strand: strand,
             year: year,
-            idNumber: idNumber,
+            idNumber: idNumber, // Kept for duplicate check
             time: time
         };
 
@@ -234,15 +275,23 @@
     }
 
     function addRow(record) {
-        let table = document.querySelector("#attendanceTable tbody");
-        let row = table.insertRow();
+        // Add to Screen Table
+        let screenTable = document.querySelector("#screenTable tbody");
+        let screenRow = screenTable.insertRow();
+        screenRow.insertCell(0).innerText = attendanceList.length;
+        screenRow.insertCell(1).innerText = record.fullName;
+        screenRow.insertCell(2).innerText = record.strand;
+        screenRow.insertCell(3).innerText = record.year;
+        screenRow.insertCell(4).innerText = record.time;
 
-        row.insertCell(0).innerText = attendanceList.length;
-        row.insertCell(1).innerText = record.fullName;
-        row.insertCell(2).innerText = record.strand;
-        row.insertCell(3).innerText = record.year;
-        row.insertCell(4).innerText = record.time;
-        row.insertCell(5).innerText = record.idNumber;
+        // Add to Print Table (Hidden on screen)
+        let printTable = document.querySelector("#attendanceTable tbody");
+        let printRow = printTable.insertRow();
+        printRow.insertCell(0).innerText = attendanceList.length;
+        printRow.insertCell(1).innerText = record.fullName;
+        printRow.insertCell(2).innerText = record.strand;
+        printRow.insertCell(3).innerText = record.year;
+        printRow.insertCell(4).innerText = record.time;
     }
 
     function printPage() {
@@ -253,6 +302,7 @@
         if(confirm("Are you sure you want to clear all data?")) {
             attendanceList = [];
             scannedIDs.clear();
+            document.querySelector("#screenTable tbody").innerHTML = "";
             document.querySelector("#attendanceTable tbody").innerHTML = "";
             document.getElementById("total").innerText = "0";
         }
@@ -264,13 +314,13 @@
             return;
         }
 
-        // Added ID Number to CSV
-        let csv = "ID Number,FullName,Strand,Year,Time\n";
+        // CSV Header (No ID Number)
+        let csv = "FullName,Strand,Year,Time\n";
 
         attendanceList.forEach(r => {
             // Escape commas in names to prevent CSV errors
             let cleanName = r.fullName.replace(/,/g, ""); 
-            csv += `${r.idNumber},${cleanName},${r.strand},${r.year},${r.time}\n`;
+            csv += `${cleanName},${r.strand},${r.year},${r.time}\n`;
         });
 
         let blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
