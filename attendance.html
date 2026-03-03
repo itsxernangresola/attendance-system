@@ -6,187 +6,288 @@
 <script src="https://unpkg.com/html5-qrcode"></script>
 
 <style>
-body {
-    font-family: Arial;
-    padding: 10px;
-    text-align: center;
-}
-
-#reader {
-    width: 100%;
-    max-width: 350px;
-    margin: auto;
-}
-
-button {
-    margin: 5px;
-    padding: 8px 12px;
-}
-
-table {
-    border-collapse: collapse;
-    width: 100%;
-    margin-top: 15px;
-    font-size: 13px;
-}
-
-th, td {
-    border: 1px solid black;
-    padding: 6px;
-}
-
-th {
-    background: #f2f2f2;
-}
-
-/* PRINT SETTINGS */
-@media print {
-
-    body * {
-        visibility: hidden;
+    /* --- GENERAL STYLES --- */
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f4f4f9;
+        padding: 20px;
+        text-align: center;
+        margin: 0;
     }
 
-    #printSection, #printSection * {
-        visibility: visible;
+    h2 {
+        color: #333;
+        margin-bottom: 20px;
     }
 
-    #printSection {
-        position: absolute;
-        left: 0;
-        top: 0;
+    /* --- SCANNER STYLES --- */
+    #reader {
         width: 100%;
+        max-width: 400px;
+        margin: auto;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        background: white;
     }
-}
+
+    /* --- CONTROLS --- */
+    .controls {
+        margin-top: 20px;
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    button {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: bold;
+        transition: background 0.3s;
+    }
+
+    .btn-print { background-color: #007bff; color: white; }
+    .btn-print:hover { background-color: #0056b3; }
+
+    .btn-export { background-color: #28a745; color: white; }
+    .btn-export:hover { background-color: #1e7e34; }
+
+    .btn-clear { background-color: #dc3545; color: white; }
+    .btn-clear:hover { background-color: #bd2130; }
+
+    .stats {
+        margin-top: 15px;
+        font-size: 1.2em;
+        color: #555;
+    }
+
+    /* --- PRINT SECTION (HIDDEN ON SCREEN) --- */
+    #printSection {
+        display: none; /* This hides it on the screen */
+    }
+
+    /* --- PRINT SETTINGS --- */
+    @media print {
+        /* Hide everything by default */
+        body * {
+            visibility: hidden;
+        }
+
+        /* Show only the print section */
+        #printSection, #printSection * {
+            visibility: visible;
+        }
+
+        #printSection {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            display: block; /* Force it to render */
+        }
+
+        /* Style the printout to look like a document */
+        #printSection {
+            font-family: Arial, sans-serif;
+            color: black;
+            padding: 20px;
+        }
+
+        #printSection h2 {
+            font-size: 24px;
+            text-transform: uppercase;
+            border-bottom: 2px solid black;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        #printSection table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 12px;
+        }
+
+        #printSection th, #printSection td {
+            border: 1px solid #000;
+            padding: 8px;
+            text-align: left;
+        }
+
+        #printSection th {
+            background-color: #eee !important; /* Printers handle background colors differently */
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        #printSection tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+    }
 </style>
 </head>
 <body>
 
-<h2>QR Attendance Scanner</h2>
+    <!-- SCREEN INTERFACE -->
+    <h2>QR Attendance Scanner</h2>
+    
+    <div id="reader"></div>
 
-<div id="reader"></div>
-
-<div>
-    <button onclick="printPage()">Print</button>
-    <button onclick="exportCSV()">Export CSV</button>
-    <button onclick="clearData()">Clear</button>
-</div>
-
-<h3>Total Present: <span id="total">0</span></h3>
-
-<!-- PRINT SECTION (Always Visible, but only printed) -->
-<div id="printSection">
-
-    <div style="text-align:center; margin-bottom:20px;">
-        <h2>ATTENDANCE</h2>
-        <p>
-            EVENT: _____________________________
-            &nbsp;&nbsp;&nbsp;&nbsp;
-            DATE: __________________
-        </p>
-        <p>
-            GRADE AND SECTION: ___________________________
-        </p>
+    <div class="controls">
+        <button class="btn-print" onclick="printPage()">Print Report</button>
+        <button class="btn-export" onclick="exportCSV()">Export CSV</button>
+        <button class="btn-clear" onclick="clearData()">Clear Data</button>
     </div>
 
-    <table id="attendanceTable">
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>Full Name</th>
-                <th>Strand</th>
-                <th>Year</th>
-                <th>Time</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
+    <div class="stats">
+        Total Present: <strong id="total">0</strong>
+    </div>
 
-</div>
+    <!-- PRINT INTERFACE (Hidden on screen, visible on print) -->
+    <div id="printSection">
+        
+        <div style="text-align:center; margin-bottom:30px;">
+            <h2>OFFICIAL ATTENDANCE REPORT</h2>
+            <p style="font-size: 14px; margin-top: 10px;">
+                <strong>EVENT:</strong> _____________________________ &nbsp;&nbsp;&nbsp;&nbsp; 
+                <strong>DATE:</strong> __________________
+            </p>
+        </div>
+
+        <table id="attendanceTable">
+            <thead>
+                <tr>
+                    <th style="width: 5%;">#</th>
+                    <th style="width: 35%;">Full Name</th>
+                    <th style="width: 15%;">Strand</th>
+                    <th style="width: 10%;">Year</th>
+                    <th style="width: 15%;">Time</th>
+                    <th style="width: 20%;">ID Number</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Rows will be added here -->
+            </tbody>
+        </table>
+
+        <div style="margin-top: 50px; display: flex; justify-content: space-between;">
+            <div style="text-align: center;">
+                <p>__________________________</p>
+                <p>Prepared by</p>
+            </div>
+            <div style="text-align: center;">
+                <p>__________________________</p>
+                <p>Verified by</p>
+            </div>
+        </div>
+
+    </div>
 
 <script>
+    let attendanceList = [];
+    let scannedIDs = new Set();
 
-let attendanceList = [];
-let scannedIDs = new Set();
+    function onScanSuccess(decodedText) {
+        // Split by semicolon as per your format
+        let parts = decodedText.split(";");
 
-function onScanSuccess(decodedText) {
+        // Validation: Ensure we have enough parts
+        if (parts.length < 8) return;
 
-    let parts = decodedText.split(";");
+        let lastName = parts[1];
+        let firstName = parts[2];
+        let middleName = parts[3];
+        let idNumber = parts[4];
+        let strand = parts[6];
+        let year = parts[7];
 
-    if (parts.length !== 8) return;
+        // Prevent duplicates
+        if (scannedIDs.has(idNumber)) return;
 
-    let lastName = parts[1];
-    let firstName = parts[2];
-    let middleName = parts[3];
-    let idNumber = parts[4];
-    let strand = parts[6];
-    let year = parts[7];
+        let time = new Date().toLocaleTimeString();
 
-    if (scannedIDs.has(idNumber)) return;
+        // Format Name: Lastname, Firstname Middlename
+        let fullName = `${lastName}, ${firstName} ${middleName}`;
 
-    let time = new Date().toLocaleTimeString();
+        let record = {
+            fullName: fullName,
+            strand: strand,
+            year: year,
+            idNumber: idNumber,
+            time: time
+        };
 
-    let fullName = lastName + ", " + firstName + " " + middleName;
+        attendanceList.push(record);
+        scannedIDs.add(idNumber);
 
-    let record = {
-        fullName: fullName,
-        strand: strand,
-        year: year,
-        idNumber: idNumber,
-        time: time
-    };
+        addRow(record);
+        document.getElementById("total").innerText = attendanceList.length;
 
-    attendanceList.push(record);
-    scannedIDs.add(idNumber);
+        // Vibrate phone on success
+        if (navigator.vibrate) navigator.vibrate(80);
+    }
 
-    addRow(record);
-    document.getElementById("total").innerText = attendanceList.length;
+    function addRow(record) {
+        let table = document.querySelector("#attendanceTable tbody");
+        let row = table.insertRow();
 
-    navigator.vibrate(80);
-}
+        row.insertCell(0).innerText = attendanceList.length;
+        row.insertCell(1).innerText = record.fullName;
+        row.insertCell(2).innerText = record.strand;
+        row.insertCell(3).innerText = record.year;
+        row.insertCell(4).innerText = record.time;
+        row.insertCell(5).innerText = record.idNumber;
+    }
 
-function addRow(record) {
-    let table = document.querySelector("#attendanceTable tbody");
-    let row = table.insertRow();
+    function printPage() {
+        window.print();
+    }
 
-    row.insertCell(0).innerText = attendanceList.length;
-    row.insertCell(1).innerText = record.fullName;
-    row.insertCell(2).innerText = record.strand;
-    row.insertCell(3).innerText = record.year;
-    row.insertCell(4).innerText = record.time;
-}
+    function clearData() {
+        if(confirm("Are you sure you want to clear all data?")) {
+            attendanceList = [];
+            scannedIDs.clear();
+            document.querySelector("#attendanceTable tbody").innerHTML = "";
+            document.getElementById("total").innerText = "0";
+        }
+    }
 
-function printPage() {
-    window.print();
-}
+    function exportCSV() {
+        if (attendanceList.length === 0) {
+            alert("No data to export!");
+            return;
+        }
 
-function clearData() {
-    attendanceList = [];
-    scannedIDs.clear();
-    document.querySelector("#attendanceTable tbody").innerHTML = "";
-    document.getElementById("total").innerText = "0";
-}
+        // Added ID Number to CSV
+        let csv = "ID Number,FullName,Strand,Year,Time\n";
 
-function exportCSV() {
-    let csv = "FullName,Strand,Year,Time\n";
+        attendanceList.forEach(r => {
+            // Escape commas in names to prevent CSV errors
+            let cleanName = r.fullName.replace(/,/g, ""); 
+            csv += `${r.idNumber},${cleanName},${r.strand},${r.year},${r.time}\n`;
+        });
 
-    attendanceList.forEach(r => {
-        csv += `${r.fullName},${r.strand},${r.year},${r.time}\n`;
-    });
+        let blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+        let url = URL.createObjectURL(blob);
 
-    let blob = new Blob([csv], { type: "text/csv" });
-    let url = URL.createObjectURL(blob);
+        let a = document.createElement("a");
+        a.href = url;
+        a.download = `Attendance_Report_${new Date().toISOString().slice(0,10)}.csv`;
+        a.click();
+    }
 
-    let a = document.createElement("a");
-    a.href = url;
-    a.download = "attendance.csv";
-    a.click();
-}
-
-new Html5QrcodeScanner("reader", {
-    fps: 15,
-    qrbox: { width: 250, height: 250 },
-    rememberLastUsedCamera: true
-}).render(onScanSuccess);
+    // Initialize Scanner
+    new Html5QrcodeScanner("reader", {
+        fps: 15,
+        qrbox: { width: 250, height: 250 },
+        rememberLastUsedCamera: true
+    }).render(onScanSuccess);
 
 </script>
 
