@@ -98,6 +98,11 @@
 
     /* --- PRINT SETTINGS --- */
     @media print {
+        /* Set 1 inch margins on all sides for any paper size */
+        @page {
+            margin: 1in;
+        }
+
         /* Hide everything by default */
         body * {
             visibility: hidden;
