@@ -1,105 +1,134 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>QR Attendance</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>QR Scanner</title>
 <script src="https://unpkg.com/html5-qrcode"></script>
 
 <style>
     * {
         box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+        background: #f8f9fa;
+        -webkit-font-smoothing: antialiased;
     }
 
     body {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-        background: #f8f9fa;
-        margin: 0;
-        padding: 20px;
-        font-size: 16px;
-        line-height: 1.4;
+        padding: env(safe-area-inset-top) env(safe-area-inset-left) env(safe-area-inset-bottom) env(safe-area-inset-right);
+        padding: 12px;
     }
 
     .container {
-        max-width: 500px;
-        margin: 0 auto;
+        height: 100vh;
+        max-width: 100%;
         background: white;
-        border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.12);
         overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+
+    @supports (padding: max(0px)) {
+        body {
+            padding-left: max(12px, env(safe-area-inset-left));
+            padding-right: max(12px, env(safe-area-inset-right));
+            padding-bottom: max(12px, env(safe-area-inset-bottom));
+        }
     }
 
     h1 {
         background: #1a1a1a;
         color: white;
         margin: 0;
-        padding: 24px;
+        padding: 20px 24px;
         text-align: center;
-        font-size: 18px;
+        font-size: clamp(16px, 4vw, 18px);
         font-weight: 600;
         letter-spacing: 0.5px;
+        flex-shrink: 0;
     }
 
     #reader {
+        flex: 0 0 35%;
         width: 100%;
-        height: 280px;
         display: block;
+        position: relative;
     }
 
     .live-display {
-        padding: 28px;
+        flex: 0 0 22%;
         background: #f8f9fa;
         border-top: 2px solid #e9ecef;
+        padding: clamp(20px, 5vw, 28px);
+        display: flex;
+        align-items: center;
     }
 
     .display-grid {
+        width: 100%;
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 16px 24px;
+        gap: clamp(12px, 3vw, 16px) clamp(20px, 5vw, 24px);
         align-items: end;
     }
 
     .field {
-        margin-bottom: 4px;
+        margin-bottom: clamp(2px, 1vw, 4px);
     }
 
     .label {
-        font-size: 13px;
+        font-size: clamp(11px, 2.5vw, 13px);
         font-weight: 500;
         color: #6c757d;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        margin-bottom: 4px;
+        margin-bottom: clamp(2px, 1vw, 4px);
     }
 
     .value {
-        font-size: 18px;
+        font-size: clamp(15px, 4vw, 18px);
         font-weight: 600;
         color: #212529;
-        min-height: 24px;
-        padding: 4px 0;
+        min-height: clamp(20px, 5vw, 24px);
+        padding: clamp(2px, 1vw, 4px) 0;
+        line-height: 1.2;
     }
 
     .value.empty {
         color: #adb5bd;
         font-style: italic;
+        font-weight: 400;
     }
 
     .scan-number {
         grid-column: 1 / -1;
         text-align: center;
-        font-size: 22px;
+        font-size: clamp(18px, 6vw, 22px);
         font-weight: 700;
         color: #495057;
-        margin-bottom: 8px;
+        margin-bottom: clamp(4px, 2vw, 8px);
+        padding: clamp(4px, 2vw, 8px) 0;
     }
 
     .status {
         grid-column: 1 / -1;
         text-align: center;
-        font-size: 16px;
+        font-size: clamp(14px, 3.5vw, 16px);
         font-weight: 600;
-        padding: 12px 0;
-        margin-top: 8px;
+        padding: clamp(8px, 3vw, 12px) 0;
+        margin-top: clamp(4px, 2vw, 8px);
     }
 
     .status.success { color: #28a745; }
@@ -110,32 +139,48 @@
     }
 
     @keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.02); }
-        100% { transform: scale(1); }
+        0% { 
+            transform: scale(1); 
+            background: rgba(0,123,255,0.08);
+        }
+        50% { 
+            transform: scale(1.02); 
+            background: rgba(0,123,255,0.12);
+        }
+        100% { 
+            transform: scale(1); 
+            background: transparent;
+        }
     }
 
     .controls {
-        padding: 24px;
+        padding: clamp(16px, 4vw, 24px);
         display: flex;
-        gap: 12px;
+        gap: clamp(8px, 3vw, 12px);
         background: #f8f9fa;
         border-top: 1px solid #e9ecef;
+        flex-shrink: 0;
     }
 
     button {
         flex: 1;
-        padding: 14px;
+        padding: clamp(12px, 4vw, 14px);
         border: 1px solid #dee2e6;
         background: white;
         border-radius: 8px;
         cursor: pointer;
-        font-size: 15px;
+        font-size: clamp(14px, 3.5vw, 15px);
         font-weight: 500;
-        transition: all 0.2s;
+        transition: all 0.2s ease;
+        min-height: 48px;
     }
 
-    button:hover {
+    button:active {
+        transform: scale(0.98);
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    button:hover:not(:active) {
         border-color: #1a1a1a;
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
@@ -145,39 +190,45 @@
         border-color: #dc3545;
     }
 
-    .btn-clear:hover {
+    .btn-clear:hover:not(:active) {
+        background: #fff5f5;
+    }
+
+    .btn-clear:active {
         background: #dc3545;
         color: white;
     }
 
     .stats {
-        padding: 18px 24px;
+        padding: clamp(14px, 4vw, 18px) clamp(20px, 5vw, 24px);
         background: #1a1a1a;
         color: white;
         text-align: center;
-        font-size: 17px;
+        font-size: clamp(15px, 4vw, 17px);
         font-weight: 600;
+        flex-shrink: 0;
     }
 
     .table-container {
-        max-height: 360px;
+        flex: 1;
         overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
         background: white;
     }
 
     table {
         width: 100%;
         border-collapse: collapse;
-        font-size: 14px;
+        font-size: clamp(13px, 3vw, 14px);
     }
 
     th {
         background: #f8f9fa;
         font-weight: 600;
         color: #495057;
-        padding: 16px 12px;
+        padding: clamp(12px, 4vw, 16px) clamp(8px, 3vw, 12px);
         text-align: left;
-        font-size: 13px;
+        font-size: clamp(11px, 2.5vw, 13px);
         text-transform: uppercase;
         letter-spacing: 0.3px;
         position: sticky;
@@ -187,7 +238,7 @@
     }
 
     td {
-        padding: 14px 12px;
+        padding: clamp(12px, 4vw, 14px) clamp(8px, 3vw, 12px);
         border-bottom: 1px solid #f1f3f4;
     }
 
@@ -195,12 +246,36 @@
         background: #f8f9fa;
     }
 
-    @media (max-width: 500px) {
-        body { padding: 12px; }
-        .container { border-radius: 0; box-shadow: none; margin: 0; }
-        .display-grid { grid-template-columns: 1fr; gap: 12px; }
-        .scan-number { font-size: 20px; }
-        .controls { flex-direction: column; }
+    /* Landscape */
+    @media (max-height: 500px) and (orientation: landscape) {
+        .container {
+            flex-direction: row;
+            height: 100vh;
+        }
+        
+        #reader {
+            flex: 0 0 45%;
+            height: 100%;
+        }
+        
+        .live-display {
+            flex: 0 0 30%;
+            border-top: none;
+            border-right: 2px solid #e9ecef;
+        }
+        
+        .controls, .stats {
+            flex-direction: column;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+        }
+    }
+
+    /* iPhone notch */
+    @supports (padding: max(0px, env(safe-area-inset-top))) {
+        h1 {
+            padding-top: max(20px, env(safe-area-inset-top));
+        }
     }
 </style>
 </head>
@@ -257,8 +332,7 @@
                     <th>Time</th>
                 </tr>
             </thead>
-            <tbody id="tableBody">
-            </tbody>
+            <tbody id="tableBody"></tbody>
         </table>
     </div>
 </div>
@@ -270,8 +344,9 @@
     let scanTimeout;
 
     function resetDisplay() {
-        document.getElementById('scanNumber').textContent = '-';
-        document.getElementById('scanNumber').className = 'scan-number empty';
+        const scanNumber = document.getElementById('scanNumber');
+        scanNumber.textContent = '-';
+        scanNumber.className = 'scan-number empty';
         
         ['studentName', 'studentStrand', 'studentYear', 'scanTime'].forEach(id => {
             const el = document.getElementById(id);
@@ -279,8 +354,9 @@
             el.className = 'value empty';
         });
         
-        document.getElementById('statusMsg').textContent = 'Ready to scan';
-        document.getElementById('statusMsg').className = 'status';
+        const status = document.getElementById('statusMsg');
+        status.textContent = 'Ready to scan';
+        status.className = 'status';
     }
 
     function showScan(decodedText) {
@@ -288,8 +364,9 @@
 
         const parts = decodedText.split(';');
         if (parts.length < 8) {
-            document.getElementById('statusMsg').textContent = 'Invalid QR';
-            document.getElementById('statusMsg').className = 'status error';
+            const status = document.getElementById('statusMsg');
+            status.textContent = 'Invalid QR';
+            status.className = 'status error';
             scanTimeout = setTimeout(resetDisplay, 1500);
             return;
         }
@@ -297,17 +374,17 @@
         const [, lastName, firstName, middleName, idNumber, , strand, year] = parts;
         
         if (scannedIDs.has(idNumber)) {
-            document.getElementById('statusMsg').textContent = 'Already scanned';
-            document.getElementById('statusMsg').className = 'status error';
+            const status = document.getElementById('statusMsg');
+            status.textContent = 'Already scanned';
+            status.className = 'status error';
             scanTimeout = setTimeout(resetDisplay, 1500);
             return;
         }
 
-        const middleInitial = middleName ? middleName[0] + '.' : '';
-        const fullName = `${lastName}, ${firstName} ${middleInitial}`;
+        const middleInitial = middleName ? middleName[0]?.toUpperCase() + '.' : '';
+        const fullName = `${lastName}, ${firstName} ${middleInitial}`.trim();
         const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
 
-        // Fill display
         document.getElementById('scanNumber').textContent = nextNumber;
         document.getElementById('scanNumber').className = 'scan-number';
         
@@ -323,8 +400,9 @@
         document.getElementById('scanTime').textContent = time;
         document.getElementById('scanTime').className = 'value';
         
-        document.getElementById('statusMsg').textContent = '✓ Scan confirmed';
-        document.getElementById('statusMsg').className = 'status success';
+        const status = document.getElementById('statusMsg');
+        status.textContent = '✓ Scan confirmed';
+        status.className = 'status success';
     }
 
     function onScanSuccess(decodedText) {
@@ -340,8 +418,8 @@
         
         if (scannedIDs.has(idNumber)) return;
 
-        const middleInitial = middleName ? middleName[0] + '.' : '';
-        const fullName = `${lastName}, ${firstName} ${middleInitial}`;
+        const middleInitial = middleName ? middleName[0]?.toUpperCase() + '.' : '';
+        const fullName = `${lastName}, ${firstName} ${middleInitial}`.trim();
         const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
 
         const record = { fullName, strand, year, idNumber, time };
@@ -352,7 +430,7 @@
         addRow(record);
         document.getElementById('total').textContent = attendanceList.length;
 
-        if (navigator.vibrate) navigator.vibrate(80);
+        if ('vibrate' in navigator) navigator.vibrate(80);
         resetDisplay();
     }
 
@@ -366,6 +444,7 @@
             <td>${record.year}</td>
             <td>${record.time}</td>
         `;
+        tbody.scrollTop = tbody.scrollHeight;
     }
 
     function clearData() {
@@ -390,21 +469,39 @@
                 [i + 1, `"${r.fullName.replace(/"/g, '""')}"`, `"${r.strand}"`, `"${r.year}"`, `"${r.time}"`].join(',')
             )).join('\n');
 
-        const blob = new Blob([csv], { type: 'text/csv' });
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
         a.download = `attendance_${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(a);
         a.click();
+        document.body.removeChild(a);
         URL.revokeObjectURL(url);
     }
 
-    new Html5QrcodeScanner('reader', {
-        fps: 10,
-        qrbox: { width: 200, height: 200 }
-    }).render(onScanSuccess);
+    // Initialize scanner with mobile optimizations
+    const html5QrCode = new Html5Qrcode("reader");
+    const config = { 
+        fps: 10, 
+        qrbox: { width: Math.min(250, window.innerWidth * 0.6), height: Math.min(250, window.innerWidth * 0.6) },
+        aspectRatio: 1.0,
+        disableFlip: false
+    };
+
+    html5QrCode.start(
+        { facingMode: "environment" },
+        config,
+        onScanSuccess,
+        () => {}
+    ).catch(err => console.log("Camera start failed:", err));
 
     resetDisplay();
+
+    // Handle orientation change
+    window.addEventListener('orientationchange', () => {
+        setTimeout(() => window.scrollTo(0, 1), 100);
+    });
 </script>
 
 </body>
