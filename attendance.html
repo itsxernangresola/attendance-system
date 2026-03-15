@@ -17,7 +17,7 @@
         height: 100%;
         margin: 0;
         padding: 0;
-        overflow-x: hidden;
+        overflow: hidden;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
         background: #f8f9fa;
         -webkit-font-smoothing: antialiased;
@@ -26,18 +26,8 @@
     body {
         padding: env(safe-area-inset-top) env(safe-area-inset-left) env(safe-area-inset-bottom) env(safe-area-inset-right);
         padding: 12px;
-    }
-
-    .container {
-        height: 100vh;
-        max-width: 100%;
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.12);
-        overflow: hidden;
         display: flex;
         flex-direction: column;
-        position: relative;
     }
 
     @supports (padding: max(0px)) {
@@ -46,6 +36,18 @@
             padding-right: max(12px, env(safe-area-inset-right));
             padding-bottom: max(12px, env(safe-area-inset-bottom));
         }
+    }
+
+    .container {
+        flex: 1;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        min-height: 0;
     }
 
     h1 {
@@ -58,22 +60,43 @@
         font-weight: 600;
         letter-spacing: 0.5px;
         flex-shrink: 0;
+        z-index: 100;
+    }
+
+    .scanner-section {
+        position: relative;
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
     }
 
     #reader {
-        flex: 0 0 35%;
+        flex: 1;
         width: 100%;
-        display: block;
+        min-height: 200px;
         position: relative;
+        z-index: 1;
     }
 
     .live-display {
-        flex: 0 0 22%;
+        flex-shrink: 0;
         background: #f8f9fa;
         border-top: 2px solid #e9ecef;
         padding: clamp(20px, 5vw, 28px);
-        display: flex;
-        align-items: center;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transform: translateY(0);
+        will-change: transform;
+    }
+
+    .live-display.scanning {
+        transform: translateY(-100%);
+        height: 0;
+        padding: 0;
+        margin: 0;
+        border-top: none;
+        overflow: hidden;
     }
 
     .display-grid {
@@ -141,11 +164,11 @@
     @keyframes pulse {
         0% { 
             transform: scale(1); 
-            background: rgba(0,123,255,0.08);
+            background: rgba(40, 167, 69, 0.1);
         }
         50% { 
             transform: scale(1.02); 
-            background: rgba(0,123,255,0.12);
+            background: rgba(40, 167, 69, 0.2);
         }
         100% { 
             transform: scale(1); 
@@ -173,16 +196,12 @@
         font-weight: 500;
         transition: all 0.2s ease;
         min-height: 48px;
+        touch-action: manipulation;
     }
 
     button:active {
         transform: scale(0.98);
         box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
-    }
-
-    button:hover:not(:active) {
-        border-color: #1a1a1a;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
 
     .btn-clear {
@@ -214,6 +233,7 @@
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
         background: white;
+        min-height: 0;
     }
 
     table {
@@ -250,11 +270,13 @@
     @media (max-height: 500px) and (orientation: landscape) {
         .container {
             flex-direction: row;
-            height: 100vh;
+        }
+        
+        .scanner-section {
+            flex: 0 0 45%;
         }
         
         #reader {
-            flex: 0 0 45%;
             height: 100%;
         }
         
@@ -263,19 +285,20 @@
             border-top: none;
             border-right: 2px solid #e9ecef;
         }
-        
-        .controls, .stats {
-            flex-direction: column;
-            writing-mode: vertical-rl;
-            text-orientation: mixed;
-        }
     }
 
-    /* iPhone notch */
-    @supports (padding: max(0px, env(safe-area-inset-top))) {
-        h1 {
-            padding-top: max(20px, env(safe-area-inset-top));
-        }
+    /* Hide scrollbar */
+    .table-container::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .table-container::-webkit-scrollbar-track {
+        background: #f1f3f4;
+    }
+
+    .table-container::-webkit-scrollbar-thumb {
+        background: #adb5bd;
+        border-radius: 2px;
     }
 </style>
 </head>
@@ -284,31 +307,32 @@
 <div class="container">
     <h1>QR Scanner</h1>
     
-    <div id="reader"></div>
-    
-    <div class="live-display">
-        <div class="display-grid" id="displayGrid">
-            <div class="scan-number empty" id="scanNumber">-</div>
-            
-            <div>
-                <div class="label">Name</div>
-                <div class="value empty" id="studentName">-</div>
+    <div class="scanner-section">
+        <div id="reader"></div>
+        <div class="live-display" id="liveDisplay">
+            <div class="display-grid" id="displayGrid">
+                <div class="scan-number empty" id="scanNumber">-</div>
+                
+                <div>
+                    <div class="label">Name</div>
+                    <div class="value empty" id="studentName">-</div>
+                </div>
+                <div>
+                    <div class="label">Strand</div>
+                    <div class="value empty" id="studentStrand">-</div>
+                </div>
+                
+                <div>
+                    <div class="label">Year</div>
+                    <div class="value empty" id="studentYear">-</div>
+                </div>
+                <div>
+                    <div class="label">Time</div>
+                    <div class="value empty" id="scanTime">-</div>
+                </div>
+                
+                <div class="status" id="statusMsg">Ready to scan</div>
             </div>
-            <div>
-                <div class="label">Strand</div>
-                <div class="value empty" id="studentStrand">-</div>
-            </div>
-            
-            <div>
-                <div class="label">Year</div>
-                <div class="value empty" id="studentYear">-</div>
-            </div>
-            <div>
-                <div class="label">Time</div>
-                <div class="value empty" id="scanTime">-</div>
-            </div>
-            
-            <div class="status" id="statusMsg">Ready to scan</div>
         </div>
     </div>
     
@@ -342,25 +366,34 @@
     let scannedIDs = new Set();
     let nextNumber = 1;
     let scanTimeout;
+    let html5QrCode;
 
     function resetDisplay() {
+        const liveDisplay = document.getElementById('liveDisplay');
         const scanNumber = document.getElementById('scanNumber');
+        
+        liveDisplay.classList.add('scanning');
         scanNumber.textContent = '-';
         scanNumber.className = 'scan-number empty';
         
-        ['studentName', 'studentStrand', 'studentYear', 'scanTime'].forEach(id => {
-            const el = document.getElementById(id);
-            el.textContent = '-';
-            el.className = 'value empty';
-        });
-        
-        const status = document.getElementById('statusMsg');
-        status.textContent = 'Ready to scan';
-        status.className = 'status';
+        setTimeout(() => {
+            ['studentName', 'studentStrand', 'studentYear', 'scanTime'].forEach(id => {
+                const el = document.getElementById(id);
+                el.textContent = '-';
+                el.className = 'value empty';
+            });
+            
+            const status = document.getElementById('statusMsg');
+            status.textContent = 'Ready to scan';
+            status.className = 'status';
+        }, 300);
     }
 
     function showScan(decodedText) {
         if (scanTimeout) clearTimeout(scanTimeout);
+
+        const liveDisplay = document.getElementById('liveDisplay');
+        liveDisplay.classList.remove('scanning');
 
         const parts = decodedText.split(';');
         if (parts.length < 8) {
@@ -480,28 +513,28 @@
         URL.revokeObjectURL(url);
     }
 
-    // Initialize scanner with mobile optimizations
-    const html5QrCode = new Html5Qrcode("reader");
+    // Initialize scanner
     const config = { 
         fps: 10, 
-        qrbox: { width: Math.min(250, window.innerWidth * 0.6), height: Math.min(250, window.innerWidth * 0.6) },
+        qrbox: { width: 220, height: 220 },
         aspectRatio: 1.0,
-        disableFlip: false
+        disableFlip: false,
+        videoConstraints: {
+            width: { ideal: 640 },
+            height: { ideal: 640 },
+            facingMode: 'environment'
+        }
     };
 
+    html5QrCode = new Html5Qrcode("reader");
     html5QrCode.start(
-        { facingMode: "environment" },
+        config.videoConstraints,
         config,
         onScanSuccess,
         () => {}
-    ).catch(err => console.log("Camera start failed:", err));
+    ).catch(console.error);
 
     resetDisplay();
-
-    // Handle orientation change
-    window.addEventListener('orientationchange', () => {
-        setTimeout(() => window.scrollTo(0, 1), 100);
-    });
 </script>
 
 </body>
