@@ -20,15 +20,124 @@
         margin-bottom: 20px;
     }
 
+    /* --- SCANNER CONTAINER --- */
+    .scanner-container {
+        display: flex;
+        max-width: 1200px;
+        margin: 0 auto 20px;
+        gap: 20px;
+        align-items: flex-start;
+    }
+
     /* --- SCANNER STYLES --- */
     #reader {
-        width: 100%;
-        max-width: 400px;
-        margin: auto;
+        flex: 1;
+        max-width: 450px;
         border-radius: 8px;
         overflow: hidden;
         box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         background: white;
+    }
+
+    /* --- LIVE READER PANEL --- */
+    .live-reader {
+        flex: 1;
+        max-width: 350px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        padding: 20px;
+        height: fit-content;
+        min-height: 400px;
+    }
+
+    .live-reader h3 {
+        margin-top: 0;
+        color: #333;
+        border-bottom: 2px solid #007bff;
+        padding-bottom: 10px;
+    }
+
+    .scan-status {
+        padding: 15px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .status-scanning {
+        background: #fff3cd;
+        color: #856404;
+        border: 2px solid #ffeaa7;
+    }
+
+    .status-success {
+        background: #d4edda;
+        color: #155724;
+        border: 2px solid #c3e6cb;
+        animation: pulse 1s ease-in-out;
+    }
+
+    .status-error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 2px solid #f5c6cb;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.02); }
+        100% { transform: scale(1); }
+    }
+
+    .decoded-info {
+        background: #f8f9fa;
+        border-radius: 6px;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-left: 4px solid #007bff;
+        display: none;
+    }
+
+    .decoded-info.show {
+        display: block;
+        animation: slideIn 0.3s ease-out;
+    }
+
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateX(-20px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+
+    .info-label {
+        font-weight: bold;
+        color: #555;
+    }
+
+    .info-value {
+        color: #333;
+        font-weight: 500;
+    }
+
+    /* --- RESPONSIVE --- */
+    @media (max-width: 768px) {
+        .scanner-container {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .live-reader {
+            max-width: 100%;
+            order: -1;
+        }
     }
 
     /* --- CONTROLS --- */
@@ -93,22 +202,19 @@
 
     /* --- PRINT SECTION (Hidden on Screen, Visible on Print) --- */
     #printSection {
-        display: none; /* Hides the formal print layout on screen */
+        display: none;
     }
 
     /* --- PRINT SETTINGS --- */
     @media print {
-        /* Set 1 inch margins on all sides for any paper size */
         @page {
             margin: 1in;
         }
 
-        /* Hide everything by default */
         body * {
             visibility: hidden;
         }
 
-        /* Show only the print section */
         #printSection, #printSection * {
             visibility: visible;
         }
@@ -123,7 +229,6 @@
             display: block;
         }
 
-        /* Style the printout to look like a document */
         #printSection {
             font-family: Arial, sans-serif;
             color: black;
@@ -168,7 +273,42 @@
     <!-- SCREEN INTERFACE -->
     <h2>QR Attendance Scanner</h2>
     
-    <div id="reader"></div>
+    <div class="scanner-container">
+        <!-- QR Scanner -->
+        <div id="reader"></div>
+        
+        <!-- LIVE READER PANEL -->
+        <div class="live-reader">
+            <h3>📱 Live Scanner</h3>
+            
+            <div id="scanStatus" class="scan-status status-scanning">
+                🔍 Scanning for QR Code...
+            </div>
+            
+            <div id="decodedInfo" class="decoded-info">
+                <div class="info-row">
+                    <span class="info-label">Full Name:</span>
+                    <span id="liveFullName" class="info-value">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Strand:</span>
+                    <span id="liveStrand" class="info-value">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Year:</span>
+                    <span id="liveYear" class="info-value">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">ID:</span>
+                    <span id="liveID" class="info-value">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Status:</span>
+                    <span id="liveStatus" class="info-value">Ready</span>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div class="controls">
         <button class="btn-print" onclick="printPage()">Print Report</button>
@@ -198,7 +338,6 @@
 
     <!-- PRINT INTERFACE (Hidden on screen, visible on print) -->
     <div id="printSection">
-        
         <div style="text-align:center; margin-bottom:30px;">
             <h2>OFFICIAL ATTENDANCE REPORT</h2>
             <p style="font-size: 14px; margin-top: 10px;">
@@ -232,55 +371,116 @@
                 <p>Verified by</p>
             </div>
         </div>
-
     </div>
 
 <script>
     let attendanceList = [];
     let scannedIDs = new Set();
+    let currentScanData = null;
 
-    function onScanSuccess(decodedText) {
-        // Split by semicolon as per your format
+    function updateLiveReader(decodedText, isValid = false) {
+        const statusEl = document.getElementById('scanStatus');
+        const decodedInfo = document.getElementById('decodedInfo');
+        
+        // Reset status
+        statusEl.className = 'scan-status status-scanning';
+        statusEl.innerHTML = '🔍 Scanning for QR Code...';
+        decodedInfo.classList.remove('show');
+        
+        if (!decodedText) return;
+
+        // Parse QR data
         let parts = decodedText.split(";");
-
-        // Validation: Ensure we have enough parts
-        if (parts.length < 8) return;
+        if (parts.length < 8) {
+            statusEl.className = 'scan-status status-error';
+            statusEl.innerHTML = '❌ Invalid QR Format';
+            return;
+        }
 
         let lastName = parts[1];
         let firstName = parts[2];
         let middleName = parts[3];
-        let idNumber = parts[4]; // Kept for duplicate check, but not displayed
+        let idNumber = parts[4];
         let strand = parts[6];
         let year = parts[7];
 
-        // Prevent duplicates
-        if (scannedIDs.has(idNumber)) return;
+        // Check for duplicate
+        if (scannedIDs.has(idNumber)) {
+            statusEl.className = 'scan-status status-error';
+            statusEl.innerHTML = '⚠️ Already Scanned';
+            return;
+        }
 
-        let time = new Date().toLocaleTimeString();
-
-        // Format Name: Lastname, Firstname Middlename
-        let fullName = `${lastName}, ${firstName} ${middleName}`;
-
-        let record = {
-            fullName: fullName,
+        // Update live display
+        currentScanData = {
+            fullName: `${lastName}, ${firstName} ${middleName}`,
             strand: strand,
             year: year,
-            idNumber: idNumber, // Kept for duplicate check
-            time: time
+            idNumber: idNumber
         };
 
-        attendanceList.push(record);
-        scannedIDs.add(idNumber);
+        document.getElementById('liveFullName').textContent = currentScanData.fullName;
+        document.getElementById('liveStrand').textContent = currentScanData.strand;
+        document.getElementById('liveYear').textContent = currentScanData.year;
+        document.getElementById('liveID').textContent = currentScanData.idNumber;
+        document.getElementById('liveStatus').textContent = '✅ Valid - Ready to Scan';
 
-        addRow(record);
-        document.getElementById("total").innerText = attendanceList.length;
+        statusEl.className = 'scan-status status-success';
+        statusEl.innerHTML = '🎉 QR Code Detected!';
+        decodedInfo.classList.add('show');
+    }
 
-        // Vibrate phone on success
-        if (navigator.vibrate) navigator.vibrate(80);
+    function onScanSuccess(decodedText) {
+        updateLiveReader(decodedText, true);
+        
+        // Small delay to show the live reader, then process
+        setTimeout(() => {
+            let parts = decodedText.split(";");
+            if (parts.length < 8) return;
+
+            let lastName = parts[1];
+            let firstName = parts[2];
+            let middleName = parts[3];
+            let idNumber = parts[4];
+            let strand = parts[6];
+            let year = parts[7];
+
+            if (scannedIDs.has(idNumber)) return;
+
+            let time = new Date().toLocaleTimeString();
+            let fullName = `${lastName}, ${firstName} ${middleName}`;
+
+            let record = {
+                fullName: fullName,
+                strand: strand,
+                year: year,
+                idNumber: idNumber,
+                time: time
+            };
+
+            attendanceList.push(record);
+            scannedIDs.add(idNumber);
+
+            addRow(record);
+            document.getElementById("total").innerText = attendanceList.length;
+
+            if (navigator.vibrate) navigator.vibrate([80, 50, 80]);
+
+            // Reset live reader after 2 seconds
+            setTimeout(() => {
+                document.getElementById('scanStatus').innerHTML = '🔍 Scanning for QR Code...';
+                document.getElementById('scanStatus').className = 'scan-status status-scanning';
+                document.getElementById('decodedInfo').classList.remove('show');
+            }, 2000);
+        }, 500);
+    }
+
+    function onScanFailure(error) {
+        // Optional: Show scanning feedback
+        // updateLiveReader(null);
     }
 
     function addRow(record) {
-        // Add to Screen Table
         let screenTable = document.querySelector("#screenTable tbody");
         let screenRow = screenTable.insertRow();
         screenRow.insertCell(0).innerText = attendanceList.length;
@@ -289,7 +489,6 @@
         screenRow.insertCell(3).innerText = record.year;
         screenRow.insertCell(4).innerText = record.time;
 
-        // Add to Print Table (Hidden on screen)
         let printTable = document.querySelector("#attendanceTable tbody");
         let printRow = printTable.insertRow();
         printRow.insertCell(0).innerText = attendanceList.length;
@@ -310,6 +509,11 @@
             document.querySelector("#screenTable tbody").innerHTML = "";
             document.querySelector("#attendanceTable tbody").innerHTML = "";
             document.getElementById("total").innerText = "0";
+            
+            // Reset live reader
+            document.getElementById('scanStatus').innerHTML = '🔍 Scanning for QR Code...';
+            document.getElementById('scanStatus').className = 'scan-status status-scanning';
+            document.getElementById('decodedInfo').classList.remove('show');
         }
     }
 
@@ -319,18 +523,14 @@
             return;
         }
 
-        // CSV Header (No ID Number)
         let csv = "FullName,Strand,Year,Time\n";
-
         attendanceList.forEach(r => {
-            // Escape commas in names to prevent CSV errors
             let cleanName = r.fullName.replace(/,/g, ""); 
             csv += `${cleanName},${r.strand},${r.year},${r.time}\n`;
         });
 
         let blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
         let url = URL.createObjectURL(blob);
-
         let a = document.createElement("a");
         a.href = url;
         a.download = `Attendance_Report_${new Date().toISOString().slice(0,10)}.csv`;
@@ -338,12 +538,13 @@
     }
 
     // Initialize Scanner
-    new Html5QrcodeScanner("reader", {
+    const scanner = new Html5QrcodeScanner("reader", {
         fps: 15,
         qrbox: { width: 250, height: 250 },
         rememberLastUsedCamera: true
-    }).render(onScanSuccess);
-
+    });
+    
+    scanner.render(onScanSuccess, onScanFailure);
 </script>
 
 </body>
