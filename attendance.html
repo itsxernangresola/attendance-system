@@ -6,135 +6,138 @@
 <script src="https://unpkg.com/html5-qrcode"></script>
 
 <style>
+    * {
+        box-sizing: border-box;
+    }
+
     body {
-        font-family: Arial, sans-serif;
-        background: #f5f5f5;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+        background: #f8f9fa;
         margin: 0;
         padding: 20px;
         font-size: 16px;
+        line-height: 1.4;
     }
 
     .container {
-        max-width: 600px;
+        max-width: 500px;
         margin: 0 auto;
         background: white;
-        border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
         overflow: hidden;
     }
 
     h1 {
-        background: #333;
+        background: #1a1a1a;
         color: white;
         margin: 0;
-        padding: 20px;
+        padding: 24px;
         text-align: center;
-        font-size: 20px;
-        font-weight: bold;
+        font-size: 18px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
     }
 
-    /* Scanner */
     #reader {
         width: 100%;
-        height: 300px;
+        height: 280px;
         display: block;
     }
 
-    /* Live display - Cashier style with fixed labels */
     .live-display {
-        padding: 25px 20px;
-        border-top: 3px solid #333;
-        background: #fafafa;
-        min-height: 160px;
+        padding: 28px;
+        background: #f8f9fa;
+        border-top: 2px solid #e9ecef;
     }
 
-    .live-content {
-        max-width: 400px;
-        margin: 0 auto;
+    .display-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px 24px;
+        align-items: end;
     }
 
-    .label-row {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 8px;
-        font-weight: bold;
-        color: #666;
-        font-size: 15px;
+    .field {
+        margin-bottom: 4px;
     }
 
-    .label-left { text-align: left; }
-    .label-right { text-align: right; }
-
-    .label-row.full-width {
-        justify-content: flex-start;
-        margin-bottom: 12px;
+    .label {
+        font-size: 13px;
+        font-weight: 500;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
     }
 
-    .value-row {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 12px;
+    .value {
         font-size: 18px;
-        font-weight: bold;
-        color: #333;
-        opacity: 0.5;
+        font-weight: 600;
+        color: #212529;
+        min-height: 24px;
+        padding: 4px 0;
     }
 
-    .value-left { text-align: left; }
-    .value-right { text-align: right; }
-
-    .value-row.full-width {
-        justify-content: flex-start;
-        font-size: 20px;
-        opacity: 1;
+    .value.empty {
+        color: #adb5bd;
+        font-style: italic;
     }
 
-    .value-row.active {
-        animation: highlight 0.5s ease-out;
-        opacity: 1 !important;
-    }
-
-    @keyframes highlight {
-        0% { background: #e3f2fd; transform: scale(1.02); }
-        100% { background: transparent; transform: scale(1); }
-    }
-
-    .status-message {
+    .scan-number {
+        grid-column: 1 / -1;
         text-align: center;
-        font-size: 18px;
-        font-weight: bold;
-        margin-top: 15px;
-        opacity: 0.7;
+        font-size: 22px;
+        font-weight: 700;
+        color: #495057;
+        margin-bottom: 8px;
     }
 
-    .status-ok { color: #28a745; }
-    .status-error { color: #dc3545; }
+    .status {
+        grid-column: 1 / -1;
+        text-align: center;
+        font-size: 16px;
+        font-weight: 600;
+        padding: 12px 0;
+        margin-top: 8px;
+    }
 
-    /* Controls */
+    .status.success { color: #28a745; }
+    .status.error { color: #dc3545; }
+
+    .value.active {
+        animation: pulse 0.6s ease-out;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.02); }
+        100% { transform: scale(1); }
+    }
+
     .controls {
-        padding: 20px;
+        padding: 24px;
         display: flex;
-        gap: 10px;
-        justify-content: center;
-        flex-wrap: wrap;
-        background: #f8f8f8;
-        border-top: 1px solid #eee;
+        gap: 12px;
+        background: #f8f9fa;
+        border-top: 1px solid #e9ecef;
     }
 
     button {
-        padding: 12px 24px;
-        border: 1px solid #ddd;
+        flex: 1;
+        padding: 14px;
+        border: 1px solid #dee2e6;
         background: white;
-        border-radius: 4px;
+        border-radius: 8px;
         cursor: pointer;
-        font-size: 16px;
-        font-weight: bold;
+        font-size: 15px;
+        font-weight: 500;
         transition: all 0.2s;
     }
 
     button:hover {
-        background: #f0f0f0;
-        border-color: #333;
+        border-color: #1a1a1a;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
 
     .btn-clear {
@@ -147,20 +150,19 @@
         color: white;
     }
 
-    /* Stats */
     .stats {
-        padding: 15px 20px;
-        background: #333;
+        padding: 18px 24px;
+        background: #1a1a1a;
         color: white;
         text-align: center;
-        font-size: 18px;
-        font-weight: bold;
+        font-size: 17px;
+        font-weight: 600;
     }
 
-    /* Table */
     .table-container {
-        max-height: 400px;
+        max-height: 360px;
         overflow-y: auto;
+        background: white;
     }
 
     table {
@@ -169,96 +171,83 @@
         font-size: 14px;
     }
 
-    th, td {
-        padding: 12px 8px;
-        text-align: left;
-        border-bottom: 1px solid #eee;
-    }
-
     th {
-        background: #f8f8f8;
-        font-weight: bold;
-        color: #333;
+        background: #f8f9fa;
+        font-weight: 600;
+        color: #495057;
+        padding: 16px 12px;
+        text-align: left;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
         position: sticky;
         top: 0;
         z-index: 10;
+        border-bottom: 2px solid #e9ecef;
     }
 
-    tr:last-child td {
-        border-bottom: none;
+    td {
+        padding: 14px 12px;
+        border-bottom: 1px solid #f1f3f4;
     }
 
-    tr:hover {
-        background: #f5f5f5;
+    tr:hover td {
+        background: #f8f9fa;
     }
 
-    /* Mobile */
-    @media (max-width: 600px) {
-        body { padding: 10px; }
-        .container { border-radius: 0; box-shadow: none; }
-        .label-row, .value-row { font-size: 14px; }
-        .value-row.full-width { font-size: 18px; }
+    @media (max-width: 500px) {
+        body { padding: 12px; }
+        .container { border-radius: 0; box-shadow: none; margin: 0; }
+        .display-grid { grid-template-columns: 1fr; gap: 12px; }
+        .scan-number { font-size: 20px; }
         .controls { flex-direction: column; }
-        button { width: 100%; }
     }
 </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>QR Attendance Scanner</h1>
+    <h1>QR Scanner</h1>
     
-    <!-- Scanner -->
     <div id="reader"></div>
     
-    <!-- Live Cashier Display with Fixed Labels -->
     <div class="live-display">
-        <div class="live-content" id="liveContent">
-            <!-- Fixed Labels (always visible) -->
-            <div class="label-row full-width">
-                <span># :</span>
+        <div class="display-grid" id="displayGrid">
+            <div class="scan-number empty" id="scanNumber">-</div>
+            
+            <div>
+                <div class="label">Name</div>
+                <div class="value empty" id="studentName">-</div>
+            </div>
+            <div>
+                <div class="label">Strand</div>
+                <div class="value empty" id="studentStrand">-</div>
             </div>
             
-            <div class="label-row">
-                <span class="label-left">Name :</span>
-                <span class="label-right">Strand :</span>
+            <div>
+                <div class="label">Year</div>
+                <div class="value empty" id="studentYear">-</div>
+            </div>
+            <div>
+                <div class="label">Time</div>
+                <div class="value empty" id="scanTime">-</div>
             </div>
             
-            <div class="label-row">
-                <span class="label-left">Year :</span>
-                <span class="label-right">Time :</span>
-            </div>
-            
-            <!-- Values (fill when scanned) -->
-            <div class="value-row full-width" id="scanNumber">-</div>
-            <div class="value-row" id="nameRow">
-                <span class="value-left" id="studentName">-</span>
-                <span class="value-right" id="studentStrand">-</span>
-            </div>
-            <div class="value-row" id="yearRow">
-                <span class="value-left" id="studentYear">-</span>
-                <span class="value-right" id="scanTime">-</span>
-            </div>
-            
-            <!-- Status -->
-            <div class="status-message" id="statusMsg">Scan QR Code</div>
+            <div class="status" id="statusMsg">Ready to scan</div>
         </div>
     </div>
     
-    <!-- Controls -->
     <div class="controls">
         <button onclick="exportCSV()">Export CSV</button>
         <button class="btn-clear" onclick="clearData()">Clear All</button>
     </div>
     
-    <!-- Stats -->
     <div class="stats">
-        Total Scanned: <span id="total">0</span>
+        Total: <span id="total">0</span>
     </div>
     
-    <!-- Attendance Table -->
     <div class="table-container">
-        <table id="attendanceTable">
+        <table>
             <thead>
                 <tr>
                     <th>#</th>
@@ -268,7 +257,7 @@
                     <th>Time</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="tableBody">
             </tbody>
         </table>
     </div>
@@ -277,117 +266,98 @@
 <script>
     let attendanceList = [];
     let scannedIDs = new Set();
-    let nextScanNumber = 1;
+    let nextNumber = 1;
     let scanTimeout;
 
     function resetDisplay() {
         document.getElementById('scanNumber').textContent = '-';
-        document.getElementById('studentName').textContent = '-';
-        document.getElementById('studentStrand').textContent = '-';
-        document.getElementById('studentYear').textContent = '-';
-        document.getElementById('scanTime').textContent = '-';
-        document.getElementById('statusMsg').textContent = 'Scan QR Code';
+        document.getElementById('scanNumber').className = 'scan-number empty';
         
-        // Remove active classes
-        document.querySelectorAll('.value-row').forEach(row => {
-            row.classList.remove('active', 'full-width');
+        ['studentName', 'studentStrand', 'studentYear', 'scanTime'].forEach(id => {
+            const el = document.getElementById(id);
+            el.textContent = '-';
+            el.className = 'value empty';
         });
+        
+        document.getElementById('statusMsg').textContent = 'Ready to scan';
+        document.getElementById('statusMsg').className = 'status';
     }
 
-    function showScanData(decodedText) {
-        // Clear timeout
+    function showScan(decodedText) {
         if (scanTimeout) clearTimeout(scanTimeout);
 
-        let parts = decodedText.split(";");
+        const parts = decodedText.split(';');
         if (parts.length < 8) {
-            document.getElementById('statusMsg').textContent = 'Invalid QR Code';
-            document.getElementById('statusMsg').className = 'status-message status-error';
-            scanTimeout = setTimeout(resetDisplay, 2000);
+            document.getElementById('statusMsg').textContent = 'Invalid QR';
+            document.getElementById('statusMsg').className = 'status error';
+            scanTimeout = setTimeout(resetDisplay, 1500);
             return;
         }
 
-        let lastName = parts[1];
-        let firstName = parts[2];
-        let middleName = parts[3];
-        let idNumber = parts[4];
-        let strand = parts[6];
-        let year = parts[7];
-
-        if (scannedIDs.has(idNumber)) {
-            document.getElementById('statusMsg').textContent = 'ALREADY SCANNED';
-            document.getElementById('statusMsg').className = 'status-message status-error';
-            scanTimeout = setTimeout(resetDisplay, 2000);
-            return;
-        }
-
-        // Format name: Lastname, Firstname M.
-        let middleInitial = middleName ? middleName.charAt(0) + '.' : '';
-        let fullName = `${lastName}, ${firstName} ${middleInitial}`;
-
-        // Fill values
-        document.getElementById('scanNumber').textContent = nextScanNumber;
-        document.getElementById('studentName').textContent = fullName;
-        document.getElementById('studentStrand').textContent = strand;
-        document.getElementById('studentYear').textContent = year;
-        document.getElementById('scanTime').textContent = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-
-        // Activate rows with animation
-        document.getElementById('scanNumber').parentElement.classList.add('active', 'full-width');
-        document.getElementById('nameRow').classList.add('active');
-        document.getElementById('yearRow').classList.add('active');
+        const [, lastName, firstName, middleName, idNumber, , strand, year] = parts;
         
-        document.getElementById('statusMsg').textContent = '✓ SCAN SUCCESS';
-        document.getElementById('statusMsg').className = 'status-message status-ok';
+        if (scannedIDs.has(idNumber)) {
+            document.getElementById('statusMsg').textContent = 'Already scanned';
+            document.getElementById('statusMsg').className = 'status error';
+            scanTimeout = setTimeout(resetDisplay, 1500);
+            return;
+        }
+
+        const middleInitial = middleName ? middleName[0] + '.' : '';
+        const fullName = `${lastName}, ${firstName} ${middleInitial}`;
+        const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+
+        // Fill display
+        document.getElementById('scanNumber').textContent = nextNumber;
+        document.getElementById('scanNumber').className = 'scan-number';
+        
+        document.getElementById('studentName').textContent = fullName;
+        document.getElementById('studentName').className = 'value active';
+        
+        document.getElementById('studentStrand').textContent = strand;
+        document.getElementById('studentStrand').className = 'value';
+        
+        document.getElementById('studentYear').textContent = year;
+        document.getElementById('studentYear').className = 'value';
+        
+        document.getElementById('scanTime').textContent = time;
+        document.getElementById('scanTime').className = 'value';
+        
+        document.getElementById('statusMsg').textContent = '✓ Scan confirmed';
+        document.getElementById('statusMsg').className = 'status success';
     }
 
     function onScanSuccess(decodedText) {
-        showScanData(decodedText);
-        
-        // Process after exactly 3 seconds
-        setTimeout(() => {
-            processScan(decodedText);
-        }, 3000);
+        showScan(decodedText);
+        setTimeout(() => processScan(decodedText), 3000);
     }
 
     function processScan(decodedText) {
-        let parts = decodedText.split(";");
+        const parts = decodedText.split(';');
         if (parts.length < 8) return;
 
-        let lastName = parts[1];
-        let firstName = parts[2];
-        let middleName = parts[3];
-        let idNumber = parts[4];
-        let strand = parts[6];
-        let year = parts[7];
-
+        const [, lastName, firstName, middleName, idNumber, , strand, year] = parts;
+        
         if (scannedIDs.has(idNumber)) return;
 
-        let middleInitial = middleName ? middleName.charAt(0) + '.' : '';
-        let fullName = `${lastName}, ${firstName} ${middleInitial}`;
-        let time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        const middleInitial = middleName ? middleName[0] + '.' : '';
+        const fullName = `${lastName}, ${firstName} ${middleInitial}`;
+        const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
 
-        let record = {
-            fullName,
-            strand,
-            year,
-            idNumber,
-            time
-        };
-
+        const record = { fullName, strand, year, idNumber, time };
         attendanceList.push(record);
         scannedIDs.add(idNumber);
-        nextScanNumber++;
-        
+        nextNumber++;
+
         addRow(record);
-        document.getElementById("total").textContent = attendanceList.length;
+        document.getElementById('total').textContent = attendanceList.length;
 
-        if (navigator.vibrate) navigator.vibrate(100);
-
+        if (navigator.vibrate) navigator.vibrate(80);
         resetDisplay();
     }
 
     function addRow(record) {
-        const tbody = document.querySelector("#attendanceTable tbody");
+        const tbody = document.getElementById('tableBody');
         const row = tbody.insertRow();
         row.innerHTML = `
             <td>${attendanceList.length}</td>
@@ -399,44 +369,41 @@
     }
 
     function clearData() {
-        if (confirm("Clear all data?")) {
+        if (confirm('Clear all data?')) {
             attendanceList = [];
             scannedIDs.clear();
-            nextScanNumber = 1;
-            document.querySelector("#attendanceTable tbody").innerHTML = "";
-            document.getElementById("total").textContent = "0";
+            nextNumber = 1;
+            document.getElementById('tableBody').innerHTML = '';
+            document.getElementById('total').textContent = '0';
             resetDisplay();
         }
     }
 
     function exportCSV() {
-        if (attendanceList.length === 0) {
-            alert("No data to export");
+        if (!attendanceList.length) {
+            alert('No data');
             return;
         }
 
-        let csv = "No,Name,Strand,Year,Time\n";
-        attendanceList.forEach((r, i) => {
-            csv += `"${i+1}","${r.fullName.replace(/"/g, '""')}","${r.strand}","${r.year}","${r.time}"\n`;
-        });
+        const csv = ['#,"Name","Strand","Year","Time']
+            .concat(attendanceList.map((r, i) => 
+                [i + 1, `"${r.fullName.replace(/"/g, '""')}"`, `"${r.strand}"`, `"${r.year}"`, `"${r.time}"`].join(',')
+            )).join('\n');
 
         const blob = new Blob([csv], { type: 'text/csv' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `attendance_${new Date().toISOString().slice(0,10)}.csv`;
+        a.download = `attendance_${new Date().toISOString().slice(0, 10)}.csv`;
         a.click();
         URL.revokeObjectURL(url);
     }
 
-    // Start scanner
-    new Html5QrcodeScanner("reader", {
+    new Html5QrcodeScanner('reader', {
         fps: 10,
-        qrbox: { width: 200, height: 200 },
-        aspectRatio: 1.0
-    }).render(onScanSuccess, () => {});
+        qrbox: { width: 200, height: 200 }
+    }).render(onScanSuccess);
 
-    // Initial reset
     resetDisplay();
 </script>
 
