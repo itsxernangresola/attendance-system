@@ -6,394 +6,303 @@
 <script src="https://unpkg.com/html5-qrcode"></script>
 
 <style>
-    /* --- GENERAL STYLES --- */
     body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background-color: #f4f4f9;
-        padding: 20px;
-        text-align: center;
+        font-family: Arial, sans-serif;
+        background: #f5f5f5;
         margin: 0;
-    }
-
-    h2 {
-        color: #333;
-        margin-bottom: 20px;
-    }
-
-    /* --- SCANNER CONTAINER --- */
-    .scanner-container {
-        display: flex;
-        max-width: 1200px;
-        margin: 0 auto 20px;
-        gap: 20px;
-        align-items: flex-start;
-    }
-
-    /* --- SCANNER STYLES --- */
-    #reader {
-        flex: 1;
-        max-width: 450px;
-        border-radius: 8px;
-        overflow: hidden;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        background: white;
-    }
-
-    /* --- LIVE READER PANEL --- */
-    .live-reader {
-        flex: 1;
-        max-width: 350px;
-        background: white;
-        border-radius: 8px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         padding: 20px;
-        height: fit-content;
-        min-height: 400px;
+        font-size: 16px;
     }
 
-    .live-reader h3 {
-        margin-top: 0;
-        color: #333;
-        border-bottom: 2px solid #007bff;
-        padding-bottom: 10px;
+    .container {
+        max-width: 600px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        overflow: hidden;
     }
 
-    .scan-status {
-        padding: 15px;
-        border-radius: 6px;
-        margin-bottom: 20px;
-        font-weight: bold;
+    h1 {
+        background: #333;
+        color: white;
+        margin: 0;
+        padding: 20px;
         text-align: center;
+        font-size: 20px;
+        font-weight: bold;
     }
 
-    .status-scanning {
-        background: #fff3cd;
-        color: #856404;
-        border: 2px solid #ffeaa7;
-    }
-
-    .status-success {
-        background: #d4edda;
-        color: #155724;
-        border: 2px solid #c3e6cb;
-        animation: pulse 1s ease-in-out;
-    }
-
-    .status-error {
-        background: #f8d7da;
-        color: #721c24;
-        border: 2px solid #f5c6cb;
-    }
-
-    @keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.02); }
-        100% { transform: scale(1); }
-    }
-
-    .decoded-info {
-        background: #f8f9fa;
-        border-radius: 6px;
-        padding: 15px;
-        margin-bottom: 15px;
-        border-left: 4px solid #007bff;
-        display: none;
-    }
-
-    .decoded-info.show {
+    /* Scanner */
+    #reader {
+        width: 100%;
+        height: 300px;
         display: block;
-        animation: slideIn 0.3s ease-out;
     }
 
-    @keyframes slideIn {
-        from { opacity: 0; transform: translateX(-20px); }
-        to { opacity: 1; transform: translateX(0); }
+    /* Live display - Cashier style with fixed labels */
+    .live-display {
+        padding: 25px 20px;
+        border-top: 3px solid #333;
+        background: #fafafa;
+        min-height: 160px;
     }
 
-    .info-row {
+    .live-content {
+        max-width: 400px;
+        margin: 0 auto;
+    }
+
+    .label-row {
         display: flex;
         justify-content: space-between;
         margin-bottom: 8px;
-        font-size: 14px;
-    }
-
-    .info-label {
         font-weight: bold;
-        color: #555;
+        color: #666;
+        font-size: 15px;
     }
 
-    .info-value {
-        color: #333;
-        font-weight: 500;
+    .label-left { text-align: left; }
+    .label-right { text-align: right; }
+
+    .label-row.full-width {
+        justify-content: flex-start;
+        margin-bottom: 12px;
     }
 
-    /* --- RESPONSIVE --- */
-    @media (max-width: 768px) {
-        .scanner-container {
-            flex-direction: column;
-            align-items: center;
-        }
-        
-        .live-reader {
-            max-width: 100%;
-            order: -1;
-        }
-    }
-
-    /* --- CONTROLS --- */
-    .controls {
-        margin-top: 20px;
+    .value-row {
         display: flex;
-        justify-content: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        font-size: 18px;
+        font-weight: bold;
+        color: #333;
+        opacity: 0.5;
+    }
+
+    .value-left { text-align: left; }
+    .value-right { text-align: right; }
+
+    .value-row.full-width {
+        justify-content: flex-start;
+        font-size: 20px;
+        opacity: 1;
+    }
+
+    .value-row.active {
+        animation: highlight 0.5s ease-out;
+        opacity: 1 !important;
+    }
+
+    @keyframes highlight {
+        0% { background: #e3f2fd; transform: scale(1.02); }
+        100% { background: transparent; transform: scale(1); }
+    }
+
+    .status-message {
+        text-align: center;
+        font-size: 18px;
+        font-weight: bold;
+        margin-top: 15px;
+        opacity: 0.7;
+    }
+
+    .status-ok { color: #28a745; }
+    .status-error { color: #dc3545; }
+
+    /* Controls */
+    .controls {
+        padding: 20px;
+        display: flex;
         gap: 10px;
+        justify-content: center;
         flex-wrap: wrap;
+        background: #f8f8f8;
+        border-top: 1px solid #eee;
     }
 
     button {
-        padding: 10px 20px;
-        border: none;
-        border-radius: 5px;
+        padding: 12px 24px;
+        border: 1px solid #ddd;
+        background: white;
+        border-radius: 4px;
         cursor: pointer;
-        font-size: 14px;
+        font-size: 16px;
         font-weight: bold;
-        transition: background 0.3s;
+        transition: all 0.2s;
     }
 
-    .btn-print { background-color: #007bff; color: white; }
-    .btn-print:hover { background-color: #0056b3; }
+    button:hover {
+        background: #f0f0f0;
+        border-color: #333;
+    }
 
-    .btn-export { background-color: #28a745; color: white; }
-    .btn-export:hover { background-color: #1e7e34; }
+    .btn-clear {
+        color: #dc3545;
+        border-color: #dc3545;
+    }
 
-    .btn-clear { background-color: #dc3545; color: white; }
-    .btn-clear:hover { background-color: #bd2130; }
+    .btn-clear:hover {
+        background: #dc3545;
+        color: white;
+    }
 
+    /* Stats */
     .stats {
-        margin-top: 15px;
-        font-size: 1.2em;
-        color: #555;
+        padding: 15px 20px;
+        background: #333;
+        color: white;
+        text-align: center;
+        font-size: 18px;
+        font-weight: bold;
     }
 
-    /* --- SCREEN TABLE STYLES (Visible on Screen) --- */
-    #screenTable {
+    /* Table */
+    .table-container {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    table {
         width: 100%;
-        max-width: 800px;
-        margin: 20px auto;
         border-collapse: collapse;
         font-size: 14px;
-        background: white;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
 
-    #screenTable th, #screenTable td {
-        border: 1px solid #ddd;
-        padding: 10px;
+    th, td {
+        padding: 12px 8px;
         text-align: left;
+        border-bottom: 1px solid #eee;
     }
 
-    #screenTable th {
-        background-color: #f8f9fa;
+    th {
+        background: #f8f8f8;
+        font-weight: bold;
         color: #333;
+        position: sticky;
+        top: 0;
+        z-index: 10;
     }
 
-    #screenTable tr:nth-child(even) {
-        background-color: #f9f9f9;
+    tr:last-child td {
+        border-bottom: none;
     }
 
-    /* --- PRINT SECTION (Hidden on Screen, Visible on Print) --- */
-    #printSection {
-        display: none;
+    tr:hover {
+        background: #f5f5f5;
     }
 
-    /* --- PRINT SETTINGS --- */
-    @media print {
-        @page {
-            margin: 1in;
-        }
-
-        body * {
-            visibility: hidden;
-        }
-
-        #printSection, #printSection * {
-            visibility: visible;
-        }
-
-        #printSection {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            margin: 0;
-            padding: 0;
-            display: block;
-        }
-
-        #printSection {
-            font-family: Arial, sans-serif;
-            color: black;
-            padding: 20px;
-        }
-
-        #printSection h2 {
-            font-size: 24px;
-            text-transform: uppercase;
-            border-bottom: 2px solid black;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-        }
-
-        #printSection table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            font-size: 12px;
-        }
-
-        #printSection th, #printSection td {
-            border: 1px solid #000;
-            padding: 8px;
-            text-align: left;
-        }
-
-        #printSection th {
-            background-color: #eee !important;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-        
-        #printSection tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
+    /* Mobile */
+    @media (max-width: 600px) {
+        body { padding: 10px; }
+        .container { border-radius: 0; box-shadow: none; }
+        .label-row, .value-row { font-size: 14px; }
+        .value-row.full-width { font-size: 18px; }
+        .controls { flex-direction: column; }
+        button { width: 100%; }
     }
 </style>
 </head>
 <body>
 
-    <!-- SCREEN INTERFACE -->
-    <h2>QR Attendance Scanner</h2>
+<div class="container">
+    <h1>QR Attendance Scanner</h1>
     
-    <div class="scanner-container">
-        <!-- QR Scanner -->
-        <div id="reader"></div>
-        
-        <!-- LIVE READER PANEL -->
-        <div class="live-reader">
-            <h3>📱 Live Scanner</h3>
-            
-            <div id="scanStatus" class="scan-status status-scanning">
-                🔍 Scanning for QR Code...
+    <!-- Scanner -->
+    <div id="reader"></div>
+    
+    <!-- Live Cashier Display with Fixed Labels -->
+    <div class="live-display">
+        <div class="live-content" id="liveContent">
+            <!-- Fixed Labels (always visible) -->
+            <div class="label-row full-width">
+                <span># :</span>
             </div>
             
-            <div id="decodedInfo" class="decoded-info">
-                <div class="info-row">
-                    <span class="info-label">Full Name:</span>
-                    <span id="liveFullName" class="info-value">-</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Strand:</span>
-                    <span id="liveStrand" class="info-value">-</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Year:</span>
-                    <span id="liveYear" class="info-value">-</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">ID:</span>
-                    <span id="liveID" class="info-value">-</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Status:</span>
-                    <span id="liveStatus" class="info-value">Ready</span>
-                </div>
+            <div class="label-row">
+                <span class="label-left">Name :</span>
+                <span class="label-right">Strand :</span>
             </div>
+            
+            <div class="label-row">
+                <span class="label-left">Year :</span>
+                <span class="label-right">Time :</span>
+            </div>
+            
+            <!-- Values (fill when scanned) -->
+            <div class="value-row full-width" id="scanNumber">-</div>
+            <div class="value-row" id="nameRow">
+                <span class="value-left" id="studentName">-</span>
+                <span class="value-right" id="studentStrand">-</span>
+            </div>
+            <div class="value-row" id="yearRow">
+                <span class="value-left" id="studentYear">-</span>
+                <span class="value-right" id="scanTime">-</span>
+            </div>
+            
+            <!-- Status -->
+            <div class="status-message" id="statusMsg">Scan QR Code</div>
         </div>
     </div>
-
+    
+    <!-- Controls -->
     <div class="controls">
-        <button class="btn-print" onclick="printPage()">Print Report</button>
-        <button class="btn-export" onclick="exportCSV()">Export CSV</button>
-        <button class="btn-clear" onclick="clearData()">Clear Data</button>
+        <button onclick="exportCSV()">Export CSV</button>
+        <button class="btn-clear" onclick="clearData()">Clear All</button>
     </div>
-
+    
+    <!-- Stats -->
     <div class="stats">
-        Total Present: <strong id="total">0</strong>
+        Total Scanned: <span id="total">0</span>
     </div>
-
-    <!-- SCREEN TABLE (Visible on Screen) -->
-    <table id="screenTable">
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>Full Name</th>
-                <th>Strand</th>
-                <th>Year</th>
-                <th>Time</th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- Rows will be added here -->
-        </tbody>
-    </table>
-
-    <!-- PRINT INTERFACE (Hidden on screen, visible on print) -->
-    <div id="printSection">
-        <div style="text-align:center; margin-bottom:30px;">
-            <h2>OFFICIAL ATTENDANCE REPORT</h2>
-            <p style="font-size: 14px; margin-top: 10px;">
-                <strong>EVENT:</strong> _____________________________ &nbsp;&nbsp;&nbsp;&nbsp; 
-                <strong>DATE:</strong> __________________
-            </p>
-        </div>
-
+    
+    <!-- Attendance Table -->
+    <div class="table-container">
         <table id="attendanceTable">
             <thead>
                 <tr>
-                    <th style="width: 5%;">#</th>
-                    <th style="width: 35%;">Full Name</th>
-                    <th style="width: 15%;">Strand</th>
-                    <th style="width: 10%;">Year</th>
-                    <th style="width: 15%;">Time</th>
+                    <th>#</th>
+                    <th>Name</th>
+                    <th>Strand</th>
+                    <th>Year</th>
+                    <th>Time</th>
                 </tr>
             </thead>
             <tbody>
-                <!-- Rows will be added here -->
             </tbody>
         </table>
-
-        <div style="margin-top: 50px; display: flex; justify-content: space-between;">
-            <div style="text-align: center;">
-                <p>__________________________</p>
-                <p>Prepared by</p>
-            </div>
-            <div style="text-align: center;">
-                <p>__________________________</p>
-                <p>Verified by</p>
-            </div>
-        </div>
     </div>
+</div>
 
 <script>
     let attendanceList = [];
     let scannedIDs = new Set();
-    let currentScanData = null;
+    let nextScanNumber = 1;
+    let scanTimeout;
 
-    function updateLiveReader(decodedText, isValid = false) {
-        const statusEl = document.getElementById('scanStatus');
-        const decodedInfo = document.getElementById('decodedInfo');
+    function resetDisplay() {
+        document.getElementById('scanNumber').textContent = '-';
+        document.getElementById('studentName').textContent = '-';
+        document.getElementById('studentStrand').textContent = '-';
+        document.getElementById('studentYear').textContent = '-';
+        document.getElementById('scanTime').textContent = '-';
+        document.getElementById('statusMsg').textContent = 'Scan QR Code';
         
-        // Reset status
-        statusEl.className = 'scan-status status-scanning';
-        statusEl.innerHTML = '🔍 Scanning for QR Code...';
-        decodedInfo.classList.remove('show');
-        
-        if (!decodedText) return;
+        // Remove active classes
+        document.querySelectorAll('.value-row').forEach(row => {
+            row.classList.remove('active', 'full-width');
+        });
+    }
 
-        // Parse QR data
+    function showScanData(decodedText) {
+        // Clear timeout
+        if (scanTimeout) clearTimeout(scanTimeout);
+
         let parts = decodedText.split(";");
         if (parts.length < 8) {
-            statusEl.className = 'scan-status status-error';
-            statusEl.innerHTML = '❌ Invalid QR Format';
+            document.getElementById('statusMsg').textContent = 'Invalid QR Code';
+            document.getElementById('statusMsg').className = 'status-message status-error';
+            scanTimeout = setTimeout(resetDisplay, 2000);
             return;
         }
 
@@ -404,147 +313,131 @@
         let strand = parts[6];
         let year = parts[7];
 
-        // Check for duplicate
         if (scannedIDs.has(idNumber)) {
-            statusEl.className = 'scan-status status-error';
-            statusEl.innerHTML = '⚠️ Already Scanned';
+            document.getElementById('statusMsg').textContent = 'ALREADY SCANNED';
+            document.getElementById('statusMsg').className = 'status-message status-error';
+            scanTimeout = setTimeout(resetDisplay, 2000);
             return;
         }
 
-        // Update live display
-        currentScanData = {
-            fullName: `${lastName}, ${firstName} ${middleName}`,
-            strand: strand,
-            year: year,
-            idNumber: idNumber
-        };
+        // Format name: Lastname, Firstname M.
+        let middleInitial = middleName ? middleName.charAt(0) + '.' : '';
+        let fullName = `${lastName}, ${firstName} ${middleInitial}`;
 
-        document.getElementById('liveFullName').textContent = currentScanData.fullName;
-        document.getElementById('liveStrand').textContent = currentScanData.strand;
-        document.getElementById('liveYear').textContent = currentScanData.year;
-        document.getElementById('liveID').textContent = currentScanData.idNumber;
-        document.getElementById('liveStatus').textContent = '✅ Valid - Ready to Scan';
+        // Fill values
+        document.getElementById('scanNumber').textContent = nextScanNumber;
+        document.getElementById('studentName').textContent = fullName;
+        document.getElementById('studentStrand').textContent = strand;
+        document.getElementById('studentYear').textContent = year;
+        document.getElementById('scanTime').textContent = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
-        statusEl.className = 'scan-status status-success';
-        statusEl.innerHTML = '🎉 QR Code Detected!';
-        decodedInfo.classList.add('show');
+        // Activate rows with animation
+        document.getElementById('scanNumber').parentElement.classList.add('active', 'full-width');
+        document.getElementById('nameRow').classList.add('active');
+        document.getElementById('yearRow').classList.add('active');
+        
+        document.getElementById('statusMsg').textContent = '✓ SCAN SUCCESS';
+        document.getElementById('statusMsg').className = 'status-message status-ok';
     }
 
     function onScanSuccess(decodedText) {
-        updateLiveReader(decodedText, true);
+        showScanData(decodedText);
         
-        // Small delay to show the live reader, then process
+        // Process after exactly 3 seconds
         setTimeout(() => {
-            let parts = decodedText.split(";");
-            if (parts.length < 8) return;
-
-            let lastName = parts[1];
-            let firstName = parts[2];
-            let middleName = parts[3];
-            let idNumber = parts[4];
-            let strand = parts[6];
-            let year = parts[7];
-
-            if (scannedIDs.has(idNumber)) return;
-
-            let time = new Date().toLocaleTimeString();
-            let fullName = `${lastName}, ${firstName} ${middleName}`;
-
-            let record = {
-                fullName: fullName,
-                strand: strand,
-                year: year,
-                idNumber: idNumber,
-                time: time
-            };
-
-            attendanceList.push(record);
-            scannedIDs.add(idNumber);
-
-            addRow(record);
-            document.getElementById("total").innerText = attendanceList.length;
-
-            if (navigator.vibrate) navigator.vibrate([80, 50, 80]);
-
-            // Reset live reader after 2 seconds
-            setTimeout(() => {
-                document.getElementById('scanStatus').innerHTML = '🔍 Scanning for QR Code...';
-                document.getElementById('scanStatus').className = 'scan-status status-scanning';
-                document.getElementById('decodedInfo').classList.remove('show');
-            }, 2000);
-        }, 500);
+            processScan(decodedText);
+        }, 3000);
     }
 
-    function onScanFailure(error) {
-        // Optional: Show scanning feedback
-        // updateLiveReader(null);
+    function processScan(decodedText) {
+        let parts = decodedText.split(";");
+        if (parts.length < 8) return;
+
+        let lastName = parts[1];
+        let firstName = parts[2];
+        let middleName = parts[3];
+        let idNumber = parts[4];
+        let strand = parts[6];
+        let year = parts[7];
+
+        if (scannedIDs.has(idNumber)) return;
+
+        let middleInitial = middleName ? middleName.charAt(0) + '.' : '';
+        let fullName = `${lastName}, ${firstName} ${middleInitial}`;
+        let time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+        let record = {
+            fullName,
+            strand,
+            year,
+            idNumber,
+            time
+        };
+
+        attendanceList.push(record);
+        scannedIDs.add(idNumber);
+        nextScanNumber++;
+        
+        addRow(record);
+        document.getElementById("total").textContent = attendanceList.length;
+
+        if (navigator.vibrate) navigator.vibrate(100);
+
+        resetDisplay();
     }
 
     function addRow(record) {
-        let screenTable = document.querySelector("#screenTable tbody");
-        let screenRow = screenTable.insertRow();
-        screenRow.insertCell(0).innerText = attendanceList.length;
-        screenRow.insertCell(1).innerText = record.fullName;
-        screenRow.insertCell(2).innerText = record.strand;
-        screenRow.insertCell(3).innerText = record.year;
-        screenRow.insertCell(4).innerText = record.time;
-
-        let printTable = document.querySelector("#attendanceTable tbody");
-        let printRow = printTable.insertRow();
-        printRow.insertCell(0).innerText = attendanceList.length;
-        printRow.insertCell(1).innerText = record.fullName;
-        printRow.insertCell(2).innerText = record.strand;
-        printRow.insertCell(3).innerText = record.year;
-        printRow.insertCell(4).innerText = record.time;
-    }
-
-    function printPage() {
-        window.print();
+        const tbody = document.querySelector("#attendanceTable tbody");
+        const row = tbody.insertRow();
+        row.innerHTML = `
+            <td>${attendanceList.length}</td>
+            <td>${record.fullName}</td>
+            <td>${record.strand}</td>
+            <td>${record.year}</td>
+            <td>${record.time}</td>
+        `;
     }
 
     function clearData() {
-        if(confirm("Are you sure you want to clear all data?")) {
+        if (confirm("Clear all data?")) {
             attendanceList = [];
             scannedIDs.clear();
-            document.querySelector("#screenTable tbody").innerHTML = "";
+            nextScanNumber = 1;
             document.querySelector("#attendanceTable tbody").innerHTML = "";
-            document.getElementById("total").innerText = "0";
-            
-            // Reset live reader
-            document.getElementById('scanStatus').innerHTML = '🔍 Scanning for QR Code...';
-            document.getElementById('scanStatus').className = 'scan-status status-scanning';
-            document.getElementById('decodedInfo').classList.remove('show');
+            document.getElementById("total").textContent = "0";
+            resetDisplay();
         }
     }
 
     function exportCSV() {
         if (attendanceList.length === 0) {
-            alert("No data to export!");
+            alert("No data to export");
             return;
         }
 
-        let csv = "FullName,Strand,Year,Time\n";
-        attendanceList.forEach(r => {
-            let cleanName = r.fullName.replace(/,/g, ""); 
-            csv += `${cleanName},${r.strand},${r.year},${r.time}\n`;
+        let csv = "No,Name,Strand,Year,Time\n";
+        attendanceList.forEach((r, i) => {
+            csv += `"${i+1}","${r.fullName.replace(/"/g, '""')}","${r.strand}","${r.year}","${r.time}"\n`;
         });
 
-        let blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-        let url = URL.createObjectURL(blob);
-        let a = document.createElement("a");
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
         a.href = url;
-        a.download = `Attendance_Report_${new Date().toISOString().slice(0,10)}.csv`;
+        a.download = `attendance_${new Date().toISOString().slice(0,10)}.csv`;
         a.click();
+        URL.revokeObjectURL(url);
     }
 
-    // Initialize Scanner
-    const scanner = new Html5QrcodeScanner("reader", {
-        fps: 15,
-        qrbox: { width: 250, height: 250 },
-        rememberLastUsedCamera: true
-    });
-    
-    scanner.render(onScanSuccess, onScanFailure);
+    // Start scanner
+    new Html5QrcodeScanner("reader", {
+        fps: 10,
+        qrbox: { width: 200, height: 200 },
+        aspectRatio: 1.0
+    }).render(onScanSuccess, () => {});
+
+    // Initial reset
+    resetDisplay();
 </script>
 
 </body>
