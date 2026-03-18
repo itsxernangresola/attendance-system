@@ -1,365 +1,412 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>QR Scanner</title>
-<script src="https://unpkg.com/html5-qrcode"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>QR Scanner</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://unpkg.com/html5-qrcode"></script>
 
-<style>
-    * {
-        box-sizing: border-box;
-        -webkit-tap-highlight-color: transparent;
-    }
+    <style>
+        :root {
+            --primary-dark: #1a1a1a;
+            --success-bg: rgba(40, 167, 69, 0.1);
+            --success-bg-hover: rgba(40, 167, 69, 0.2);
+        }
 
-    html, body {
-        height: 100%;
-        margin: 0;
-        padding: 0;
-        overflow: hidden;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-        background: #f8f9fa;
-        -webkit-font-smoothing: antialiased;
-    }
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-    body {
-        padding: env(safe-area-inset-top) env(safe-area-inset-left) env(safe-area-inset-bottom) env(safe-area-inset-right);
-        padding: 12px;
-        display: flex;
-        flex-direction: column;
-    }
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: #f8f9fa;
+            -webkit-font-smoothing: antialiased;
+        }
 
-    @supports (padding: max(0px)) {
         body {
-            padding-left: max(12px, env(safe-area-inset-left));
-            padding-right: max(12px, env(safe-area-inset-right));
-            padding-bottom: max(12px, env(safe-area-inset-bottom));
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
         }
-    }
 
-    .container {
-        flex: 1;
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.12);
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-        position: relative;
-        min-height: 0;
-    }
-
-    h1 {
-        background: #1a1a1a;
-        color: white;
-        margin: 0;
-        padding: 20px 24px;
-        text-align: center;
-        font-size: clamp(16px, 4vw, 18px);
-        font-weight: 600;
-        letter-spacing: 0.5px;
-        flex-shrink: 0;
-        z-index: 100;
-    }
-
-    .scanner-section {
-        position: relative;
-        flex: 1;
-        min-height: 0;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-    }
-
-    #reader {
-        flex: 1;
-        width: 100%;
-        min-height: 200px;
-        position: relative;
-        z-index: 1;
-    }
-
-    .live-display {
-        flex-shrink: 0;
-        background: #f8f9fa;
-        border-top: 2px solid #e9ecef;
-        padding: clamp(20px, 5vw, 28px);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        transform: translateY(0);
-        will-change: transform;
-    }
-
-    .live-display.scanning {
-        transform: translateY(-100%);
-        height: 0;
-        padding: 0;
-        margin: 0;
-        border-top: none;
-        overflow: hidden;
-    }
-
-    .display-grid {
-        width: 100%;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: clamp(12px, 3vw, 16px) clamp(20px, 5vw, 24px);
-        align-items: end;
-    }
-
-    .field {
-        margin-bottom: clamp(2px, 1vw, 4px);
-    }
-
-    .label {
-        font-size: clamp(11px, 2.5vw, 13px);
-        font-weight: 500;
-        color: #6c757d;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: clamp(2px, 1vw, 4px);
-    }
-
-    .value {
-        font-size: clamp(15px, 4vw, 18px);
-        font-weight: 600;
-        color: #212529;
-        min-height: clamp(20px, 5vw, 24px);
-        padding: clamp(2px, 1vw, 4px) 0;
-        line-height: 1.2;
-    }
-
-    .value.empty {
-        color: #adb5bd;
-        font-style: italic;
-        font-weight: 400;
-    }
-
-    .scan-number {
-        grid-column: 1 / -1;
-        text-align: center;
-        font-size: clamp(18px, 6vw, 22px);
-        font-weight: 700;
-        color: #495057;
-        margin-bottom: clamp(4px, 2vw, 8px);
-        padding: clamp(4px, 2vw, 8px) 0;
-    }
-
-    .status {
-        grid-column: 1 / -1;
-        text-align: center;
-        font-size: clamp(14px, 3.5vw, 16px);
-        font-weight: 600;
-        padding: clamp(8px, 3vw, 12px) 0;
-        margin-top: clamp(4px, 2vw, 8px);
-    }
-
-    .status.success { color: #28a745; }
-    .status.error { color: #dc3545; }
-
-    .value.active {
-        animation: pulse 0.6s ease-out;
-    }
-
-    @keyframes pulse {
-        0% { 
-            transform: scale(1); 
-            background: rgba(40, 167, 69, 0.1);
+        @supports (padding: max(0px)) {
+            body {
+                padding-left: max(12px, env(safe-area-inset-left));
+                padding-right: max(12px, env(safe-area-inset-right));
+                padding-bottom: max(12px, env(safe-area-inset-bottom));
+            }
         }
-        50% { 
-            transform: scale(1.02); 
-            background: rgba(40, 167, 69, 0.2);
-        }
-        100% { 
-            transform: scale(1); 
-            background: transparent;
-        }
-    }
 
-    .controls {
-        padding: clamp(16px, 4vw, 24px);
-        display: flex;
-        gap: clamp(8px, 3vw, 12px);
-        background: #f8f9fa;
-        border-top: 1px solid #e9ecef;
-        flex-shrink: 0;
-    }
-
-    button {
-        flex: 1;
-        padding: clamp(12px, 4vw, 14px);
-        border: 1px solid #dee2e6;
-        background: white;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: clamp(14px, 3.5vw, 15px);
-        font-weight: 500;
-        transition: all 0.2s ease;
-        min-height: 48px;
-        touch-action: manipulation;
-    }
-
-    button:active {
-        transform: scale(0.98);
-        box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
-    }
-
-    .btn-clear {
-        color: #dc3545;
-        border-color: #dc3545;
-    }
-
-    .btn-clear:hover:not(:active) {
-        background: #fff5f5;
-    }
-
-    .btn-clear:active {
-        background: #dc3545;
-        color: white;
-    }
-
-    .stats {
-        padding: clamp(14px, 4vw, 18px) clamp(20px, 5vw, 24px);
-        background: #1a1a1a;
-        color: white;
-        text-align: center;
-        font-size: clamp(15px, 4vw, 17px);
-        font-weight: 600;
-        flex-shrink: 0;
-    }
-
-    .table-container {
-        flex: 1;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-        background: white;
-        min-height: 0;
-    }
-
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: clamp(13px, 3vw, 14px);
-    }
-
-    th {
-        background: #f8f9fa;
-        font-weight: 600;
-        color: #495057;
-        padding: clamp(12px, 4vw, 16px) clamp(8px, 3vw, 12px);
-        text-align: left;
-        font-size: clamp(11px, 2.5vw, 13px);
-        text-transform: uppercase;
-        letter-spacing: 0.3px;
-        position: sticky;
-        top: 0;
-        z-index: 10;
-        border-bottom: 2px solid #e9ecef;
-    }
-
-    td {
-        padding: clamp(12px, 4vw, 14px) clamp(8px, 3vw, 12px);
-        border-bottom: 1px solid #f1f3f4;
-    }
-
-    tr:hover td {
-        background: #f8f9fa;
-    }
-
-    /* Landscape */
-    @media (max-height: 500px) and (orientation: landscape) {
-        .container {
-            flex-direction: row;
-        }
-        
-        .scanner-section {
-            flex: 0 0 45%;
-        }
-        
-        #reader {
+        .main-container {
+            flex: 1;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            min-height: 0;
             height: 100%;
         }
-        
-        .live-display {
-            flex: 0 0 30%;
-            border-top: none;
-            border-right: 2px solid #e9ecef;
+
+        .app-header {
+            background: var(--primary-dark) !important;
+            color: white;
+            margin: 0;
+            padding: 1.25rem 1.5rem !important;
+            text-align: center;
+            font-size: clamp(1rem, 4vw, 1.125rem);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            flex-shrink: 0;
+            z-index: 100;
         }
-    }
 
-    /* Hide scrollbar */
-    .table-container::-webkit-scrollbar {
-        width: 4px;
-    }
+        .scanner-section {
+            position: relative;
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
 
-    .table-container::-webkit-scrollbar-track {
-        background: #f1f3f4;
-    }
+        #reader {
+            flex: 1;
+            width: 100%;
+            min-height: 200px;
+            position: relative;
+            z-index: 1;
+        }
 
-    .table-container::-webkit-scrollbar-thumb {
-        background: #adb5bd;
-        border-radius: 2px;
-    }
-</style>
+        .live-display {
+            flex-shrink: 0;
+            background: #f8f9fa;
+            border-top: 2px solid #e9ecef;
+            padding: clamp(1.25rem, 5vw, 1.75rem);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translateY(0);
+            will-change: transform;
+        }
+
+        .live-display.scanning {
+            transform: translateY(-100%);
+            height: 0;
+            padding: 0;
+            margin: 0;
+            border-top: none;
+            overflow: hidden;
+        }
+
+        .display-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 0.75rem 1.5rem;
+            align-items: end;
+        }
+
+        .field {
+            margin-bottom: 0.25rem;
+        }
+
+        .label {
+            font-size: clamp(0.6875rem, 2.5vw, 0.8125rem);
+            font-weight: 500;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.25rem;
+        }
+
+        .value {
+            font-size: clamp(0.9375rem, 4vw, 1.125rem);
+            font-weight: 600;
+            color: #212529;
+            min-height: clamp(1.25rem, 5vw, 1.5rem);
+            padding: 0.25rem 0;
+            line-height: 1.2;
+        }
+
+        .value.empty {
+            color: #adb5bd;
+            font-style: italic;
+            font-weight: 400;
+        }
+
+        .scan-number {
+            grid-column: 1 / -1;
+            text-align: center;
+            font-size: clamp(1.125rem, 6vw, 1.375rem);
+            font-weight: 700;
+            color: #495057;
+            margin-bottom: 0.5rem;
+            padding: 0.5rem 0;
+        }
+
+        .status {
+            grid-column: 1 / -1;
+            text-align: center;
+            font-size: clamp(0.875rem, 3.5vw, 1rem);
+            font-weight: 600;
+            padding: 0.75rem 0;
+            margin-top: 0.5rem;
+        }
+
+        .status.success { color: #28a745; }
+        .status.error { color: #dc3545; }
+
+        .value.active {
+            animation: pulse 0.6s ease-out;
+        }
+
+        @keyframes pulse {
+            0% { 
+                transform: scale(1); 
+                background: var(--success-bg);
+            }
+            50% { 
+                transform: scale(1.02); 
+                background: var(--success-bg-hover);
+            }
+            100% { 
+                transform: scale(1); 
+                background: transparent;
+            }
+        }
+
+        .controls {
+            padding: 1.5rem;
+            display: flex;
+            gap: 0.75rem;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            flex-shrink: 0;
+        }
+
+        .btn-custom {
+            padding: clamp(0.75rem, 4vw, 0.875rem);
+            border: 1px solid #dee2e6;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: clamp(0.875rem, 3.5vw, 0.9375rem);
+            font-weight: 500;
+            transition: all 0.2s ease;
+            min-height: 48px;
+            touch-action: manipulation;
+            flex: 1;
+        }
+
+        .btn-custom:active {
+            transform: scale(0.98);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .btn-clear {
+            color: #dc3545;
+            border-color: #dc3545;
+        }
+
+        .btn-clear:hover:not(:active) {
+            background: #fff5f5;
+        }
+
+        .btn-clear:active {
+            background: #dc3545;
+            color: white;
+        }
+
+        .stats {
+            padding: 1rem 1.5rem;
+            background: var(--primary-dark);
+            color: white;
+            text-align: center;
+            font-size: clamp(0.9375rem, 4vw, 1.0625rem);
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .table-container {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            background: white;
+            min-height: 0;
+        }
+
+        .table-custom {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: clamp(0.8125rem, 3vw, 0.875rem);
+            margin-bottom: 0;
+        }
+
+        .table-custom th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+            padding: clamp(0.75rem, 4vw, 1rem) clamp(0.5rem, 3vw, 0.75rem);
+            text-align: left;
+            font-size: clamp(0.6875rem, 2.5vw, 0.8125rem);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .table-custom td {
+            padding: clamp(0.75rem, 4vw, 0.875rem) clamp(0.5rem, 3vw, 0.75rem);
+            border-bottom: 1px solid #f1f3f4;
+            vertical-align: top;
+        }
+
+        .table-custom tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        /* Landscape optimizations */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .main-container {
+                flex-direction: row;
+            }
+            
+            .scanner-section {
+                flex: 0 0 45%;
+            }
+            
+            #reader {
+                height: 100%;
+            }
+            
+            .live-display {
+                flex: 0 0 30%;
+                border-top: none;
+                border-right: 2px solid #e9ecef;
+            }
+            
+            .table-container {
+                flex: 1;
+            }
+        }
+
+        /* Hide scrollbar */
+        .table-container::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .table-container::-webkit-scrollbar-track {
+            background: #f1f3f4;
+        }
+
+        .table-container::-webkit-scrollbar-thumb {
+            background: #adb5bd;
+            border-radius: 2px;
+        }
+
+        /* Extra small devices (less than 576px) */
+        @media (max-width: 575.98px) {
+            .display-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .scan-number {
+                grid-column: 1;
+            }
+            
+            .status {
+                grid-column: 1;
+            }
+        }
+    </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>QR Scanner</h1>
-    
-    <div class="scanner-section">
-        <div id="reader"></div>
-        <div class="live-display" id="liveDisplay">
-            <div class="display-grid" id="displayGrid">
-                <div class="scan-number empty" id="scanNumber">-</div>
-                
-                <div>
-                    <div class="label">Name</div>
-                    <div class="value empty" id="studentName">-</div>
+<div class="container-fluid p-0 h-100">
+    <div class="main-container h-100">
+        <h1 class="app-header mb-0">QR Scanner</h1>
+        
+        <div class="scanner-section">
+            <div id="reader" class="w-100"></div>
+            <div class="live-display" id="liveDisplay">
+                <div class="display-grid" id="displayGrid">
+                    <div class="scan-number empty" id="scanNumber">-</div>
+                    
+                    <div>
+                        <div class="label">Name</div>
+                        <div class="value empty" id="studentName">-</div>
+                    </div>
+                    <div>
+                        <div class="label">Strand</div>
+                        <div class="value empty" id="studentStrand">-</div>
+                    </div>
+                    
+                    <div>
+                        <div class="label">Year</div>
+                        <div class="value empty" id="studentYear">-</div>
+                    </div>
+                    <div>
+                        <div class="label">Time</div>
+                        <div class="value empty" id="scanTime">-</div>
+                    </div>
+                    
+                    <div class="status" id="statusMsg">Ready to scan</div>
                 </div>
-                <div>
-                    <div class="label">Strand</div>
-                    <div class="value empty" id="studentStrand">-</div>
-                </div>
-                
-                <div>
-                    <div class="label">Year</div>
-                    <div class="value empty" id="studentYear">-</div>
-                </div>
-                <div>
-                    <div class="label">Time</div>
-                    <div class="value empty" id="scanTime">-</div>
-                </div>
-                
-                <div class="status" id="statusMsg">Ready to scan</div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button class="btn btn-outline-primary btn-custom" onclick="exportCSV()">
+                <i class="bi bi-download me-1"></i>Export CSV
+            </button>
+            <button class="btn btn-outline-danger btn-clear btn-custom" onclick="clearData()">
+                <i class="bi bi-trash3 me-1"></i>Clear All
+            </button>
+        </div>
+        
+        <div class="stats">
+            Total: <span id="total">0</span>
+        </div>
+        
+        <div class="table-container">
+            <div class="table-responsive">
+                <table class="table table-custom mb-0">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Name</th>
+                            <th>Strand</th>
+                            <th>Year</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Dynamic rows will be inserted here -->
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
-    
-    <div class="controls">
-        <button onclick="exportCSV()">Export CSV</button>
-        <button class="btn-clear" onclick="clearData()">Clear All</button>
-    </div>
-    
-    <div class="stats">
-        Total: <span id="total">0</span>
-    </div>
-    
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Name</th>
-                    <th>Strand</th>
-                    <th>Year</th>
-                    <th>Time</th>
-                </tr>
-            </thead>
-            <tbody id="tableBody"></tbody>
-        </table>
-    </div>
 </div>
+
+<!-- Bootstrap 5 JS Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
     let attendanceList = [];
@@ -477,7 +524,7 @@
             <td>${record.year}</td>
             <td>${record.time}</td>
         `;
-        tbody.scrollTop = tbody.scrollHeight;
+        tbody.parentElement.scrollTop = tbody.parentElement.scrollHeight;
     }
 
     function clearData() {
@@ -501,7 +548,6 @@
             .concat(attendanceList.map((r, i) => 
                 [i + 1, `"${r.fullName.replace(/"/g, '""')}"`, `"${r.strand}"`, `"${r.year}"`, `"${r.time}"`].join(',')
             )).join('\n');
-
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
